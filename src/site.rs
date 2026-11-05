@@ -185,12 +185,12 @@ pub(crate) fn markdown(source: &str) -> String {
         Event::Start(Tag::Link { link_type, dest_url, title, id }) => {
             let ok = safe_href(&dest_url);
             open.push(ok);
-            ok.then(|| Event::Start(Tag::Link { link_type, dest_url, title, id }))
+            ok.then_some(Event::Start(Tag::Link { link_type, dest_url, title, id }))
         }
         Event::Start(Tag::Image { link_type, dest_url, title, id }) => {
             let ok = dest_url.starts_with("https://") && safe_href(&dest_url);
             open.push(ok);
-            ok.then(|| Event::Start(Tag::Image { link_type, dest_url, title, id }))
+            ok.then_some(Event::Start(Tag::Image { link_type, dest_url, title, id }))
         }
         Event::End(TagEnd::Link) | Event::End(TagEnd::Image) => open.pop().unwrap_or(false).then_some(e),
         other => Some(other),
