@@ -1,0 +1,72 @@
+# Ferrum Website
+
+**A native app for [Ferrum](https://github.com/CBFerrum/Ferrum), the open-source, AI-first business platform.**
+
+## Overview
+
+The workspace's public website: pages and blog posts written in Markdown, with a menu and a home page.
+
+- **Where it is served:** on its own host (`site:website`). An administrator gives the workspace's domain to the Website app.
+- **How it is rendered:** on the server, so search engines and link previews read every page, and no page runs a script.
+
+| At a glance | |
+|---|---|
+| 📦 Version | `0.1.0` |
+| 🧱 Platform | Ferrum `>=0.3.2, <0.4` |
+| 🖥️ Interface | its own, at `/website/`; the public site on its host |
+| 🗃️ Records | 2 entities in 1 package |
+| 👥 Roles | Site Editor |
+
+## How it works
+
+| Record | What it is |
+|---|---|
+| `WebPage` | A page or a post. Fields: `title`, `slug`, `kind` (Page or Post), `summary`, `body` (Markdown), `in_menu`, `menu_order`. Set by its actions: `status` (Draft or Published) and `published_at`. |
+| `WebsiteSettings` | `site_title`, `tagline`, `home_page`, `blog_title`, `footer`. |
+
+How `slug` is set:
+- It is made from the title when it is not given: lower-case letters, digits and dashes, at most 120 characters.
+- `/blog` and `/assets` are the site's own, so a page cannot take them.
+- A title with no letters or digits to make one from needs one given.
+
+**Actions:** `publish` (with the time) and `unpublish` (back to a draft).
+
+**The public site:**
+
+| Address | What it serves |
+|---|---|
+| `/` | The home page the settings name, else the latest posts. |
+| `/blog` | The posts, newest first. |
+| `/{slug}` | A published page or post. |
+| `/sitemap.xml` | Every published page. |
+| `/robots.txt` | Points to the sitemap. |
+| `/assets/site.css` | The stylesheet. |
+
+- Drafts and unknown addresses are not found.
+- The text is escaped.
+- Markdown keeps tables and strikethrough, and drops raw HTML.
+- Links go to `https://`, `http://`, `mailto:`, `#…` or `/…`. A link elsewhere keeps only its text.
+- Images are shown from `https://` addresses only.
+
+## Limits
+
+- **Images:** they are https:// addresses. There is no media library of its own; Drive's public files may be linked.
+- **Pages:** one level of pages, no nested menus, no themes beyond the light and dark stylesheet, and no forms. Web forms are the Forms app's job.
+- **Preview:** the preview in `/website/` is the kit's Markdown view, close to but not the same as the site's.
+
+## Changelog
+
+| Version | Highlights |
+|---|---|
+| **0.1.0** | Pages and blog posts in Markdown, a menu and a home page, served on the workspace's own host and rendered on the server. |
+
+## Develop
+
+```bash
+cargo test   # needs PostgreSQL: FERRUM_WEBSITE_TEST_DATABASE_URL
+cd ui && npm run typecheck && npm test && npm run build   # with Ferrum-Frontend at ../../ferrum/web
+```
+
+## License
+
+AGPL-3.0-only.

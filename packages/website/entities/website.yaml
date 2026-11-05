@@ -1,0 +1,32 @@
+- name: WebPage
+  label: Web Page
+  label_plural: Web Pages
+  kind: master
+  module: website
+  title_field: title
+  description: "A page or a blog post of the public site, at /{slug}. Published, it is on the site; a draft is seen only in the preview, by those who may read it."
+  fields:
+    - {name: title, type: data, required: true, in_list: true, max_length: 200}
+    - {name: slug, type: data, unique: true, in_list: true, max_length: 120, description: "Its address on the site: lower-case letters, digits and dashes; made from the title when empty"}
+    - {name: kind, type: select, options: [Page, Post], default: Page, required: true, in_list: true, in_filter: true}
+    - {name: summary, type: text, max_length: 300, description: "A line for search engines, link previews and the blog's list"}
+    - {name: body, type: markdown, required: true, max_length: 100000, description: "Markdown; raw HTML is not shown, and images are https:// addresses"}
+    - {name: status, type: select, options: [Draft, Published], default: Draft, read_only: true, in_list: true, in_filter: true}
+    - {name: published_at, type: datetime, read_only: true, no_copy: true, in_list: true}
+    - {name: in_menu, type: check, label: In the Menu, in_list: true}
+    - {name: menu_order, type: int, default: 100, min: 0, max: 10000, description: "Lower comes first in the menu"}
+  list: {columns: [title, slug, kind, status, in_menu, published_at], sort: title asc}
+  actions:
+    - {name: publish, label: Publish, permission: write, condition: "doc.status == 'Draft'"}
+    - {name: unpublish, label: Back to Draft, permission: write, condition: "doc.status == 'Published'"}
+
+- name: WebsiteSettings
+  label: Website Settings
+  kind: settings
+  module: website
+  fields:
+    - {name: site_title, type: data, max_length: 120, description: "The site's name, in every page's title and header; the workspace's name when empty"}
+    - {name: tagline, type: data, max_length: 200}
+    - {name: home_page, type: link, to: WebPage, description: "The page at the site's root; the latest posts when empty"}
+    - {name: blog_title, type: data, max_length: 60, description: "The heading of /blog; Blog when empty"}
+    - {name: footer, type: text, max_length: 1000}

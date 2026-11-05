@@ -1,0 +1,19 @@
+package: website
+version: 0.1.0
+label: Website
+description: "The workspace's public website: pages and blog posts written in Markdown, a menu, and the site served on its own host"
+depends: [core]
+
+modules:
+  - name: website
+    label: Website
+    icon: file-text
+    order: 59
+    items: [WebPage, WebsiteSettings]
+
+roles:
+  - name: Site Editor
+    description: Writes pages and posts, publishes them, and keeps the site's settings.
+    permissions:
+      - {entity: WebPage, read: true, write: true, create: true, delete: true, export: true}
+      - {entity: WebsiteSettings, read: true, write: true, create: true}
