@@ -1,0 +1,31 @@
+id: website
+name: Website
+version: 0.1.0
+publisher: cbferrum
+summary: "The workspace's public website: pages and blog posts written in Markdown, a menu, and the site on its own host, rendered on the server"
+description: README.md
+categories: [marketing]
+license: AGPL-3.0-only
+homepage: https://github.com/CBFerrum/ferrum-app-website
+support: https://github.com/CBFerrum/ferrum-app-website/issues
+runtime: native
+platform: ">=0.3.2, <0.4"
+packages: [website]
+uninstall: ask
+# Its own interface at /website/: the pages and posts with their previews. The public site is
+# served on a `site:website` host (an administrator gives the workspace's domain to it).
+ui:
+  dist: ui/dist
+contributes:
+  shell.app:
+    - id: website
+      route: website
+      title: Website
+      description: Your public site's pages and blog
+      icon: layout-grid
+      color: "#0d9488"
+      roles: [Site Editor]
+  shell.open:
+    - {id: website, package: website, path: "website/e/{entity}/{id}", list: "website/e/{entity}"}
+  shell.create:
+    - {id: web_page, label: Web page, path: website/e/WebPage/new, entity: WebPage}
