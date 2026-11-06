@@ -58,6 +58,7 @@ How `slug` is set:
 
 | Version | Highlights |
 |---|---|
+| **0.1.5** | Rebuilt with Ferrum-Frontend a64416a: a box whose default is 1 shows ticked; action dialogs say every refusal and ask once. |
 | **0.1.4** | Rebuilt with Ferrum-Frontend a76295e: times on a person's own clock when they chose one. |
 | **0.1.3** | Domains offers its site: the handler says it serves pages. |
 | **0.1.2** | From a browser walk: the editor's preview is the site's own rendering; a site without a title is the workspace's name; pages carry what link previews read. Rebuilt with Ferrum-Frontend 24c3951. |
