@@ -6,13 +6,15 @@
 //! * `/blog`: the posts, newest first; `/{slug}`: a published page or post;
 //! * `/sitemap.xml`, `/robots.txt`, and `/assets/site.css`.
 //!
-//! Drafts are never served. Text is escaped; Markdown goes through [`markdown`].
+//! Drafts are never served. Text is escaped; Markdown goes through [`markdown`]. Signed in, whoever
+//! may read a page gets it as the site renders its text, drafts included, at
+//! `/api/app/website/preview/{id}` (the editor's preview).
 
 use crate::pages::slugify;
 use ferrum_domain::util::{id, s};
 use ferrum_kernel::{Ctx, Doc, Error, Filter, Kernel, Result, Site, SiteRequest, SiteResponse, Tx};
 use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
-use serde_json::Value;
+use serde_json::{Value, json};
 use uuid::Uuid;
 
 const CSS: &str = include_str!("../assets/site.css");
@@ -25,6 +27,9 @@ pub struct WebsiteSite;
 impl Site for WebsiteSite {
     async fn handle(&self, k: &Kernel, req: SiteRequest) -> Result<SiteResponse> {
         let path = req.path.trim_start_matches('/');
+        if let Some(id) = path.strip_prefix("preview/") {
+            return preview(k, &req, id).await;
+        }
         let Some(rest) = path.strip_prefix("_site").filter(|r| r.is_empty() || r.starts_with('/')) else {
             return Err(Error::NotFound(format!("website endpoint {} {}", req.method, req.path)));
         };
@@ -40,6 +45,20 @@ impl Site for WebsiteSite {
     }
 }
 
+/// `GET preview/{id}`: a page or post, drafts included, as the site renders its text, for whoever
+/// may read it with their own rights: `{title, html}`.
+async fn preview(k: &Kernel, req: &SiteRequest, id: &str) -> Result<SiteResponse> {
+    let user = req.user.as_ref().ok_or_else(|| Error::Unauthorized("sign in first".into()))?;
+    if req.method != "GET" {
+        return Err(Error::NotFound("the preview is read only".into()));
+    }
+    let id: Uuid = id.parse().map_err(|_| Error::NotFound("page".into()))?;
+    let page = k.get(user, "WebPage", id, false).await?;
+    let mut r = SiteResponse::json(200, &json!({"title": s(&page, "title"), "html": markdown(s(&page, "body").unwrap_or_default())}));
+    r.headers.push(("cache-control".into(), "no-store".into()));
+    Ok(r)
+}
+
 /// The site's name, words and menu, from its settings and its published pages.
 struct Info {
     title: String,
@@ -53,11 +72,13 @@ struct Info {
 async fn info(k: &Kernel, ctx: &Ctx, tx: &mut Tx) -> Result<Info> {
     let settings = k.find_tx(ctx, tx, "WebsiteSettings", &[], None, 1).await?.into_iter().next().unwrap_or_default();
     let text = |f: &str, default: &str| s(&settings, f).unwrap_or(default).to_string();
+    // Without a title of its own, the site is called as the workspace is.
+    let workspace: String = sqlx::query_scalar("select name from tenant where id = $1").bind(ctx.tenant).fetch_one(&mut **tx).await?;
     let mut menu: Vec<Doc> =
         k.find_tx(ctx, tx, "WebPage", &[Filter::eq("status", "Published"), Filter::eq("in_menu", true)], Some("menu_order asc"), 30).await?;
     menu.sort_by_key(|p| (p.get("menu_order").and_then(Value::as_i64).unwrap_or(100), s(p, "title").unwrap_or_default().to_lowercase()));
     Ok(Info {
-        title: text("site_title", "Website"),
+        title: s(&settings, "site_title").map(str::trim).filter(|t| !t.is_empty()).map_or(workspace, str::to_string),
         tagline: text("tagline", ""),
         blog: text("blog_title", "Blog"),
         footer: text("footer", ""),
@@ -145,13 +166,25 @@ async fn page(k: &Kernel, ctx: &Ctx, tx: &mut Tx, path: &str, origin: &str) -> R
 
 fn layout(site: &Info, origin: &str, path: &str, title: &str, description: &str, main: &str) -> String {
     let full = if title.is_empty() || title == site.title { esc(&site.title) } else { format!("{} · {}", esc(title), esc(&site.title)) };
+    // What link previews read: the page's title and summary, the site's name, and its address.
+    let mut og = format!(
+        r#"<meta property="og:type" content="website"><meta property="og:site_name" content="{}"><meta property="og:title" content="{}">"#,
+        esc(&site.title),
+        esc(if title.is_empty() { &site.title } else { title })
+    );
+    if !description.is_empty() {
+        og.push_str(&format!(r#"<meta property="og:description" content="{}">"#, esc(description)));
+    }
+    if !origin.is_empty() {
+        og.push_str(&format!(r#"<meta property="og:url" content="{}{}">"#, esc(origin), esc(path)));
+    }
     let description = if description.is_empty() { String::new() } else { format!(r#"<meta name="description" content="{}">"#, esc(description)) };
     let canonical = if origin.is_empty() { String::new() } else { format!(r#"<link rel="canonical" href="{}{}">"#, esc(origin), esc(path)) };
     let menu: String = site.menu.iter().map(|(slug, t)| format!(r#"<li><a href="/{}">{}</a></li>"#, esc(slug), esc(t))).collect();
     let tagline = if site.tagline.is_empty() { String::new() } else { format!(r#"<p class="tagline">{}</p>"#, esc(&site.tagline)) };
     let footer = if site.footer.is_empty() { format!("© {}", esc(&site.title)) } else { esc(&site.footer) };
     format!(
-        r##"<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{full}</title>{description}{canonical}<link rel="stylesheet" href="/assets/site.css?v={v}"></head><body><a class="skip" href="#main">Skip to content</a><header class="top"><a class="brand" href="/">{brand}</a>{tagline}<nav aria-label="Site"><ul>{menu}<li><a href="/blog">{blog}</a></li></ul></nav></header><main id="main">{main}</main><footer>{footer}</footer></body></html>"##,
+        r##"<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{full}</title>{description}{canonical}{og}<link rel="stylesheet" href="/assets/site.css?v={v}"></head><body><a class="skip" href="#main">Skip to content</a><header class="top"><a class="brand" href="/">{brand}</a>{tagline}<nav aria-label="Site"><ul>{menu}<li><a href="/blog">{blog}</a></li></ul></nav></header><main id="main">{main}</main><footer>{footer}</footer></body></html>"##,
         v = CSS.len(),
         brand = esc(&site.title),
         blog = esc(&site.blog),

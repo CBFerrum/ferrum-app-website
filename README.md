@@ -52,12 +52,13 @@ How `slug` is set:
 
 - **Images:** they are https:// addresses. There is no media library of its own; Drive's public files may be linked.
 - **Pages:** one level of pages, no nested menus, no themes beyond the light and dark stylesheet, and no forms. Web forms are the Forms app's job.
-- **Preview:** the preview in `/website/` is the kit's Markdown view, close to but not the same as the site's.
+- **Preview:** the preview in `/website/` shows the page's text as the site renders it, with this app's styles rather than the site's stylesheet.
 
 ## Changelog
 
 | Version | Highlights |
 |---|---|
+| **0.1.2** | From a browser walk: the editor's preview is the site's own rendering; a site without a title is the workspace's name; pages carry what link previews read. Rebuilt with Ferrum-Frontend 24c3951. |
 | **0.1.1** | Rebuilt with Ferrum-Frontend bb60115: empty numbers read as the server reads them; settings open as their record. |
 | **0.1.0** | Pages and blog posts in Markdown, a menu and a home page, served on the workspace's own host and rendered on the server. |
 
