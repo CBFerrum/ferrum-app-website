@@ -25,6 +25,11 @@ pub struct WebsiteSite;
 
 #[async_trait::async_trait]
 impl Site for WebsiteSite {
+    /// The site's pages at the root of its `site:website` host, so a domain can be given to it.
+    fn serves_pages(&self) -> bool {
+        true
+    }
+
     async fn handle(&self, k: &Kernel, req: SiteRequest) -> Result<SiteResponse> {
         let path = req.path.trim_start_matches('/');
         if let Some(id) = path.strip_prefix("preview/") {
