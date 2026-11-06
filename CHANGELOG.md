@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+Its site handler says it serves pages at the root of a `site:website` host, so Ferrum's Domains offers this app's site, and only apps that serve one (Ferrum PR 85).
+
 ## 0.1.2
 
 From a browser walk on a running server (an About page and a post with a table, strikethrough, a
