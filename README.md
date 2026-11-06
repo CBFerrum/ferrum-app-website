@@ -58,6 +58,7 @@ How `slug` is set:
 
 | Version | Highlights |
 |---|---|
+| **0.1.3** | Domains offers its site: the handler says it serves pages. |
 | **0.1.2** | From a browser walk: the editor's preview is the site's own rendering; a site without a title is the workspace's name; pages carry what link previews read. Rebuilt with Ferrum-Frontend 24c3951. |
 | **0.1.1** | Rebuilt with Ferrum-Frontend bb60115: empty numbers read as the server reads them; settings open as their record. |
 | **0.1.0** | Pages and blog posts in Markdown, a menu and a home page, served on the workspace's own host and rendered on the server. |
