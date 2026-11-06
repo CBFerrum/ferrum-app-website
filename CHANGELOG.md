@@ -13,6 +13,7 @@ blog, sitemap and robots.txt as the site serves them):
   the settings say, rather than "Website".
 - **Link previews:** each page carries `og:title`, `og:description` (its summary), `og:site_name`,
   `og:type` and, on its host, `og:url`.
+- Rebuilt with Ferrum-Frontend 24c3951: times on the workspace's clock.
 
 ## 0.1.1
 
