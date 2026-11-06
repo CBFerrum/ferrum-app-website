@@ -58,6 +58,7 @@ How `slug` is set:
 
 | Version | Highlights |
 |---|---|
+| **0.1.1** | Rebuilt with Ferrum-Frontend bb60115: empty numbers read as the server reads them; settings open as their record. |
 | **0.1.0** | Pages and blog posts in Markdown, a menu and a home page, served on the workspace's own host and rendered on the server. |
 
 ## Develop
