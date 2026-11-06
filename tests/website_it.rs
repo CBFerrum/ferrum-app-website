@@ -2,8 +2,8 @@
 //! (`FERRUM_WEBSITE_TEST_DATABASE_URL`, default `postgres://ferrum:ferrum@localhost:5432/ferrum_website_test`;
 //! reset first), its public pages asked for as the platform hands a `site:website` host's requests
 //! to the package: addresses made from titles and kept off the site's own paths; drafts never
-//! served; the home page, the blog, the menu, the sitemap and robots.txt; Markdown without
-//! scripts; and who may write.
+//! served; the home page, the blog, the menu, the sitemap and robots.txt; what link previews read;
+//! Markdown without scripts; the editor's preview, drafts included; and who may write.
 
 use ferrum_kernel::secret::SecretKey;
 use ferrum_kernel::tenant::NewTenant;
@@ -38,6 +38,22 @@ async fn get(k: &Kernel, site: &Arc<dyn Site>, tenant: Uuid, path: &str) -> Resu
     };
     let r = site.handle(k, req).await?;
     Ok((r.status, r.content_type, String::from_utf8(r.body).unwrap()))
+}
+
+/// The editor's preview of a page (`/api/app/website/preview/{id}`) as `who`.
+async fn preview(k: &Kernel, site: &Arc<dyn Site>, who: Option<&Ctx>, id: &Value) -> Result<Value, Error> {
+    let req = SiteRequest {
+        tenant: who.map(|c| c.tenant).unwrap_or_default(),
+        user: who.cloned(),
+        method: "GET".into(),
+        path: format!("/preview/{}", id.as_str().unwrap()),
+        query: Map::new(),
+        headers: Map::new(),
+        body: vec![],
+        client_ip: "203.0.113.7".into(),
+    };
+    let r = site.handle(k, req).await?;
+    Ok(serde_json::from_slice(&r.body).unwrap())
 }
 
 #[test]
@@ -119,6 +135,16 @@ async fn scenario() {
         "{html}"
     );
     assert!(html.contains(r#"<link rel="canonical" href="https://www.acme.test/about-us">"#) && html.contains(r#"href="/assets/site.css?v="#), "{html}");
+    // What link previews read; without a title of its own the site is called as the workspace is.
+    for tag in [
+        r#"<meta property="og:title" content="About Us">"#,
+        r#"<meta property="og:description" content="Who we are">"#,
+        r#"<meta property="og:url" content="https://www.acme.test/about-us">"#,
+        r#"<meta property="og:site_name" content="Acme">"#,
+    ] {
+        assert!(html.contains(tag), "{tag} in {html}");
+    }
+    assert!(html.contains("<title>About Us · Acme</title>") && html.contains(r#"<a class="brand" href="/">Acme</a>"#), "{html}");
     assert!(html.contains(r#"<li><a href="/about-us">About Us</a></li>"#) && !html.contains("Secret plans"), "the menu: published pages only: {html}");
     assert!(matches!(get(&k, &site, tenant, "/secret-plans").await, Err(Error::NotFound(_))));
 
@@ -159,6 +185,18 @@ async fn scenario() {
     assert!(matches!(get(&k, &site, tenant, "/hello-world").await, Err(Error::NotFound(_))));
     assert!(matches!(get(&k, &site, tenant, "/Not A Slug").await, Err(Error::NotFound(_))));
     assert!(matches!(get(&k, &site, tenant, "/a/b").await, Err(Error::NotFound(_))));
+
+    // ───────────── the editor's preview: drafts too, as the site renders them ─────────────
+    let draft = preview(&k, &site, Some(&editor), &secret["id"]).await.expect("a draft's preview");
+    assert_eq!((draft["title"].as_str(), draft["html"].as_str()), (Some("Secret plans"), Some("<p>Not yet.</p>\n")));
+    let post = preview(&k, &site, Some(&editor), &hello["id"]).await.expect("a post's preview");
+    let html = post["html"].as_str().unwrap();
+    assert!(
+        !html.contains("<script") && !html.contains("javascript:") && !html.contains("onerror") && html.contains("https://cdn.acme.test/logo.png"),
+        "{html}"
+    );
+    assert!(preview(&k, &site, Some(&other), &secret["id"]).await.is_err(), "only whoever may read it");
+    assert!(matches!(preview(&k, &site, None, &secret["id"]).await, Err(Error::Unauthorized(_))));
 
     // ───────────── who may write ─────────────
     assert!(matches!(k.insert(&other, "WebPage", page("Mine", "Page", "x", json!({}))).await, Err(Error::Forbidden(_))));

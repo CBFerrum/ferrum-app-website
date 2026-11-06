@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.2
+
+From a browser walk on a running server (an About page and a post with a table, strikethrough, a
+script and a script link, a picture by https and one by http, published; the settings; the pages,
+blog, sitemap and robots.txt as the site serves them):
+
+- **Preview:** the editor's preview is now the site's own rendering of the page's text, from
+  `GET /api/app/website/preview/{id}` (drafts included, for whoever may read the page). Before, it
+  was the kit's Markdown view, which showed tables, strikethrough and pictures as plain text.
+- **The site's name:** without a title of its own, the site is called by the workspace's name, as
+  the settings say, rather than "Website".
+- **Link previews:** each page carries `og:title`, `og:description` (its summary), `og:site_name`,
+  `og:type` and, on its host, `og:url`.
+- Rebuilt with Ferrum-Frontend 24c3951: times on the workspace's clock.
+
 ## 0.1.1
 
 Rebuilt with Ferrum-Frontend bb60115: a record page reads an empty number or check as the server does, so an action whose condition needs one shows, and a workspace's settings open as their one record.
