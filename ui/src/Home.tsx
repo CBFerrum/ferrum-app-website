@@ -1,12 +1,12 @@
 // The editors' page: the site's pages and posts, published ones first, the menu as the site shows
-// it, and a preview of the one chosen, drafts included. The public site itself is served on the
-// domain an administrator gives to the Website app.
+// it, and a preview of the one chosen, drafts included, as the site renders it. The public site is
+// served on the domain an administrator gives to the Website app.
 
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
 import { api, docPath } from "@ferrum/client";
-import { Badge, ErrorState, Markdown, PageLoading, useShellTitle } from "@ferrum/kit";
+import { Badge, ErrorState, PageLoading, useShellTitle } from "@ferrum/kit";
 import { menu, ordered, type Row } from "./pages";
 
 export function Home() {
@@ -19,7 +19,12 @@ export function Home() {
         .get<{ rows: Row[] }>(docPath("WebPage"), { fields: "title,slug,kind,status,in_menu,menu_order,published_at,summary", limit: 500 })
         .then((r) => ordered(r.rows)),
   });
-  const preview = useQuery({ queryKey: ["website", "page", chosen], enabled: !!chosen, queryFn: () => api.get<Row>(docPath("WebPage", chosen!)) });
+  // The site's own rendering of the page's text, drafts included (`/api/app/website/preview/{id}`).
+  const preview = useQuery({
+    queryKey: ["website", "preview", chosen],
+    enabled: !!chosen,
+    queryFn: ({ signal }) => api.get<{ title: string; html: string }>(`/api/app/website/preview/${chosen}`, {}, signal),
+  });
   if (q.isPending) return <PageLoading />;
   if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   const site = menu(q.data);
@@ -63,8 +68,9 @@ export function Home() {
             <ErrorState error={preview.error} onRetry={() => void preview.refetch()} />
           ) : (
             <article className="stack">
-              <h4 className="font-semibold">{String(preview.data.title)}</h4>
-              <Markdown source={String(preview.data.body ?? "")} />
+              <h4 className="font-semibold">{preview.data.title}</h4>
+              {/* The server's HTML: its text escaped, raw HTML dropped, and only safe links and https images kept. */}
+              <div className="ws-site" dangerouslySetInnerHTML={{ __html: preview.data.html }} />
             </article>
           )}
         </section>
