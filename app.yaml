@@ -1,6 +1,6 @@
 id: website
 name: Website
-version: 0.1.9
+version: 0.1.10
 publisher: cbferrum
 summary: "The workspace's public website: pages and blog posts written in Markdown, a menu, and the site on its own host, rendered on the server"
 description: README.md
@@ -29,3 +29,13 @@ contributes:
     - {id: website, package: website, path: "website/e/{entity}/{id}", list: "website/e/{entity}"}
   shell.create:
     - {id: web_page, label: Web page, path: website/e/WebPage/new, entity: WebPage}
+  # What the assistant should know in Website's pages, and what it suggests asking there.
+  shell.assistant:
+    - id: website
+      title: "Website"
+      instructions: >-
+        A WebPage (Draft, Published) is a page or a blog post written in Markdown; only published ones are on the
+        site. WebsiteSettings holds the menu and the site's own host.
+      suggestions:
+        - "Which pages are still drafts?"
+        - "What did we publish this month?"
