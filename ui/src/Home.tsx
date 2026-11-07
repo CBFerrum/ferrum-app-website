@@ -5,12 +5,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
-import { api, docPath, t } from "@ferrum/client";
+import { api, docPath, t, isolate } from "@ferrum/client";
 import { Badge, ErrorState, PageLoading, useShellTitle } from "@ferrum/kit";
 import { menu, ordered, type Row } from "./pages";
 
 export function Home() {
-  useShellTitle("Website");
+  useShellTitle(t("Website"));
   const [chosen, setChosen] = useState<string | null>(null);
   const q = useQuery({
     queryKey: ["website", "pages"],
@@ -38,7 +38,7 @@ export function Home() {
         </span>
       </header>
       <p className="faint">
-        {t("The menu:")} {site.length ? site.map((p) => String(p.title)).join(" · ") : "no pages in it yet"} {t("· Blog")}
+        {t("The menu:")} {site.length ? site.map((p) => String(p.title)).join(" · ") : t("no pages in it yet")} {t("· Blog")}
       </p>
       <div className="np-columns">
         <section className="card card-pad stack" aria-labelledby="ws-pages">
@@ -48,10 +48,10 @@ export function Home() {
             {q.data.map((p) => (
               <li key={p.id} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                 <button type="button" className="link-btn" aria-pressed={chosen === p.id} onClick={() => setChosen(p.id)}>
-                  {String(p.title)}
+                  {isolate(String(p.title))}
                 </button>
-                <span className="faint">/{String(p.slug ?? "")}</span>
-                <Badge tone={p.status === "Published" ? "green" : "neutral"}>{String(p.status)}</Badge>
+                <span className="faint">/{isolate(String(p.slug ?? ""))}</span>
+                <Badge tone={p.status === "Published" ? "green" : "neutral"}>{isolate(String(p.status))}</Badge>
                 {p.kind === "Post" ? <Badge tone="blue">{t("Post")}</Badge> : null}
                 <Link to={`/e/WebPage/${p.id}`}>{t("Edit")}</Link>
               </li>
@@ -68,7 +68,7 @@ export function Home() {
             <ErrorState error={preview.error} onRetry={() => void preview.refetch()} />
           ) : (
             <article className="stack">
-              <h4 className="font-semibold">{preview.data.title}</h4>
+              <h4 className="font-semibold">{isolate(preview.data.title)}</h4>
               {/* The server's HTML: its text escaped, raw HTML dropped, and only safe links and https images kept. */}
               <div className="ws-site" dangerouslySetInnerHTML={{ __html: preview.data.html }} />
             </article>
