@@ -5,7 +5,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
-import { api, docPath } from "@ferrum/client";
+import { api, docPath, t } from "@ferrum/client";
 import { Badge, ErrorState, PageLoading, useShellTitle } from "@ferrum/kit";
 import { menu, ordered, type Row } from "./pages";
 
@@ -31,19 +31,19 @@ export function Home() {
   return (
     <div className="np-page">
       <header className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2>Website</h2>
+        <h2>{t("Website")}</h2>
         <span className="row" style={{ gap: 12 }}>
-          <Link to="/e/WebsiteSettings">Settings</Link>
-          <Link to="/e/WebPage/new">New page</Link>
+          <Link to="/e/WebsiteSettings">{t("Settings")}</Link>
+          <Link to="/e/WebPage/new">{t("New page")}</Link>
         </span>
       </header>
       <p className="faint">
-        The menu: {site.length ? site.map((p) => String(p.title)).join(" · ") : "no pages in it yet"} · Blog
+        {t("The menu:")} {site.length ? site.map((p) => String(p.title)).join(" · ") : "no pages in it yet"} {t("· Blog")}
       </p>
       <div className="np-columns">
         <section className="card card-pad stack" aria-labelledby="ws-pages">
-          <h3 id="ws-pages">Pages and posts ({q.data.length})</h3>
-          {q.data.length === 0 && <p className="faint">No pages yet.</p>}
+          <h3 id="ws-pages">{t("Pages and posts ({length})", { length: q.data.length })}</h3>
+          {q.data.length === 0 && <p className="faint">{t("No pages yet.")}</p>}
           <ul className="stack">
             {q.data.map((p) => (
               <li key={p.id} className="row" style={{ gap: 8, flexWrap: "wrap" }}>
@@ -52,16 +52,16 @@ export function Home() {
                 </button>
                 <span className="faint">/{String(p.slug ?? "")}</span>
                 <Badge tone={p.status === "Published" ? "green" : "neutral"}>{String(p.status)}</Badge>
-                {p.kind === "Post" ? <Badge tone="blue">Post</Badge> : null}
-                <Link to={`/e/WebPage/${p.id}`}>Edit</Link>
+                {p.kind === "Post" ? <Badge tone="blue">{t("Post")}</Badge> : null}
+                <Link to={`/e/WebPage/${p.id}`}>{t("Edit")}</Link>
               </li>
             ))}
           </ul>
         </section>
         <section className="card card-pad stack" aria-labelledby="ws-preview">
-          <h3 id="ws-preview">Preview</h3>
+          <h3 id="ws-preview">{t("Preview")}</h3>
           {!chosen ? (
-            <p className="faint">Choose a page to see it as the site shows it.</p>
+            <p className="faint">{t("Choose a page to see it as the site shows it.")}</p>
           ) : preview.isPending ? (
             <PageLoading />
           ) : preview.isError ? (
