@@ -5,8 +5,7 @@
   "No pages yet.": "لا صفحات بعد.",
   "Pages and posts ({length})": "الصفحات والمنشورات ({length})",
   "Post": "منشور",
-  "The menu:": "القائمة:",
+  "The menu: {p1} · Blog": "القائمة: {p1} · المدونة",
   "Website": "الموقع الإلكتروني",
-  "no pages in it yet": "لا صفحات فيه بعد",
-  "· Blog": "· المدونة"
+  "no pages in it yet": "لا صفحات فيه بعد"
 }
