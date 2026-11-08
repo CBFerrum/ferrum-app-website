@@ -5,8 +5,7 @@
   "No pages yet.": "अभी कोई पेज नहीं।",
   "Pages and posts ({length})": "पेज और पोस्ट ({length})",
   "Post": "पोस्ट",
-  "The menu:": "मेनू:",
+  "The menu: {p1} · Blog": "मेनू: {p1} · ब्लॉग",
   "Website": "वेबसाइट",
-  "no pages in it yet": "इसमें अभी कोई पेज नहीं",
-  "· Blog": "· ब्लॉग"
+  "no pages in it yet": "इसमें अभी कोई पेज नहीं"
 }

@@ -58,6 +58,7 @@ How `slug` is set:
 
 | Version | Highlights |
 |---|---|
+| **0.1.11** | Its names in Arabic and Hindi; the last English sentences translated. |
 | **0.1.10** | The assistant knows its records. |
 | **0.1.9** | Rebuilt with Ferrum-Frontend 5b22e7b: its own words in Arabic and Hindi. |
 | **0.1.8** | Rebuilt with Ferrum-Frontend 6537d65: once-shown answers kept; English isolated right to left; its own words translatable by a workspace. |

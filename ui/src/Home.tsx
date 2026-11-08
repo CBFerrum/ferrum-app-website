@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
 import { api, docPath, t, isolate } from "@ferrum/client";
-import { Badge, ErrorState, PageLoading, useShellTitle } from "@ferrum/kit";
+import { Badge, ErrorState, PageLoading, useShellTitle, placed } from "@ferrum/kit";
 import { menu, ordered, type Row } from "./pages";
 
 export function Home() {
@@ -38,7 +38,7 @@ export function Home() {
         </span>
       </header>
       <p className="faint">
-        {t("The menu:")} {site.length ? site.map((p) => String(p.title)).join(" · ") : t("no pages in it yet")} {t("· Blog")}
+        {placed(t("The menu: {p1} · Blog"), { p1: site.length ? site.map((p) => String(p.title)).join(" · ") : t("no pages in it yet") })}
       </p>
       <div className="np-columns">
         <section className="card card-pad stack" aria-labelledby="ws-pages">
