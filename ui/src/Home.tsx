@@ -5,9 +5,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
-import { api, docPath, t, isolate } from "@ferrum/client";
-import { Badge, ErrorState, PageLoading, useShellTitle, placed } from "@ferrum/kit";
+import { ApiError, api, docPath, t, isolate } from "@ferrum/client";
+import { Badge, ListSkeleton, ReaderSkeleton, StatePanel, StatusBadge, useShellTitle, placed } from "@ferrum/kit";
 import { menu, ordered, type Row } from "./pages";
+
+// The stored states of a page (website.yaml): Draft, Published.
+const STATUS_TONES = { Draft: "neutral", Published: "green" } as const;
+
+// A failed read said why: refused (403) is not shown as an error, no connection (0) is offline.
+function Failed({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  const status = error instanceof ApiError ? error.status : -1;
+  return <StatePanel kind={status === 403 ? "denied" : status === 0 ? "offline" : "failed"} error={error} onRetry={onRetry} />;
+}
 
 export function Home() {
   useShellTitle(t("Website"));
@@ -25,24 +34,30 @@ export function Home() {
     enabled: !!chosen,
     queryFn: ({ signal }) => api.get<{ title: string; html: string }>(`/api/app/website/preview/${chosen}`, {}, signal),
   });
-  if (q.isPending) return <PageLoading />;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
+  if (q.isPending) return <ListSkeleton />;
+  if (q.isError) return <Failed error={q.error} onRetry={() => void q.refetch()} />;
   const site = menu(q.data);
   return (
     <div className="np-page">
-      <header className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2>{t("Website")}</h2>
-        <span className="row" style={{ gap: 12 }}>
-          <Link to="/e/WebsiteSettings">{t("Settings")}</Link>
-          <Link to="/e/WebPage/new">{t("New page")}</Link>
-        </span>
+      <header className="page-head">
+        <div>
+          <h1 className="page-title">{t("Website")}</h1>
+          <p className="page-sub">
+            {placed(t("The menu: {p1} · Blog"), { p1: site.length ? site.map((p) => String(p.title)).join(" · ") : t("no pages in it yet") })}
+          </p>
+        </div>
+        <div className="page-actions">
+          <Link className="btn btn-md" to="/e/WebsiteSettings">
+            {t("Settings")}
+          </Link>
+          <Link className="btn btn-primary btn-md" to="/e/WebPage/new">
+            {t("New page")}
+          </Link>
+        </div>
       </header>
-      <p className="faint">
-        {placed(t("The menu: {p1} · Blog"), { p1: site.length ? site.map((p) => String(p.title)).join(" · ") : t("no pages in it yet") })}
-      </p>
       <div className="np-columns">
         <section className="card card-pad stack" aria-labelledby="ws-pages">
-          <h3 id="ws-pages">{t("Pages and posts ({length})", { length: q.data.length })}</h3>
+          <h2 id="ws-pages" className="font-semibold">{t("Pages and posts ({length})", { length: q.data.length })}</h2>
           {q.data.length === 0 && <p className="faint">{t("No pages yet.")}</p>}
           <ul className="stack">
             {q.data.map((p) => (
@@ -50,8 +65,8 @@ export function Home() {
                 <button type="button" className="link-btn" aria-pressed={chosen === p.id} onClick={() => setChosen(p.id)}>
                   {isolate(String(p.title))}
                 </button>
-                <span className="faint">/{isolate(String(p.slug ?? ""))}</span>
-                <Badge tone={p.status === "Published" ? "green" : "neutral"}>{isolate(String(p.status))}</Badge>
+                <span className="faint" dir="ltr">/{isolate(String(p.slug ?? ""))}</span>
+                <StatusBadge value={p.status} tones={STATUS_TONES} />
                 {p.kind === "Post" ? <Badge tone="blue">{t("Post")}</Badge> : null}
                 <Link to={`/e/WebPage/${p.id}`}>{t("Edit")}</Link>
               </li>
@@ -59,16 +74,16 @@ export function Home() {
           </ul>
         </section>
         <section className="card card-pad stack" aria-labelledby="ws-preview">
-          <h3 id="ws-preview">{t("Preview")}</h3>
+          <h2 id="ws-preview" className="font-semibold">{t("Preview")}</h2>
           {!chosen ? (
             <p className="faint">{t("Choose a page to see it as the site shows it.")}</p>
           ) : preview.isPending ? (
-            <PageLoading />
+            <ReaderSkeleton />
           ) : preview.isError ? (
-            <ErrorState error={preview.error} onRetry={() => void preview.refetch()} />
+            <Failed error={preview.error} onRetry={() => void preview.refetch()} />
           ) : (
             <article className="stack">
-              <h4 className="font-semibold">{isolate(preview.data.title)}</h4>
+              <h3 className="font-semibold">{isolate(preview.data.title)}</h3>
               {/* The server's HTML: its text escaped, raw HTML dropped, and only safe links and https images kept. */}
               <div className="ws-site" dangerouslySetInnerHTML={{ __html: preview.data.html }} />
             </article>

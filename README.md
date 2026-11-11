@@ -58,6 +58,7 @@ How `slug` is set:
 
 | Version | Highlights |
 |---|---|
+| **0.1.12** | The redesigned interface: the upgraded design system, shaped loading, told-apart states. |
 | **0.1.11** | Its names in Arabic and Hindi; the last English sentences translated. |
 | **0.1.10** | The assistant knows its records. |
 | **0.1.9** | Rebuilt with Ferrum-Frontend 5b22e7b: its own words in Arabic and Hindi. |
