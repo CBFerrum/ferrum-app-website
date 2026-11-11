@@ -1,6 +1,6 @@
 id: website
 name: Website
-version: 0.1.11
+version: 0.1.12
 publisher: cbferrum
 summary: "The workspace's public website: pages and blog posts written in Markdown, a menu, and the site on its own host, rendered on the server"
 description: README.md
