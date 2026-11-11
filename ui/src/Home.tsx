@@ -5,9 +5,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
-import { api, docPath, t, isolate } from "@ferrum/client";
-import { Badge, ErrorState, PageLoading, useShellTitle, placed } from "@ferrum/kit";
+import { ApiError, api, docPath, t, isolate } from "@ferrum/client";
+import { Badge, ListSkeleton, ReaderSkeleton, StatePanel, StatusBadge, useShellTitle, placed } from "@ferrum/kit";
 import { menu, ordered, type Row } from "./pages";
+
+// The stored states of a page (website.yaml): Draft, Published.
+const STATUS_TONES = { Draft: "neutral", Published: "green" } as const;
+
+// A failed read said why: refused (403) is not shown as an error, no connection (0) is offline.
+function Failed({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  const status = error instanceof ApiError ? error.status : -1;
+  return <StatePanel kind={status === 403 ? "denied" : status === 0 ? "offline" : "failed"} error={error} onRetry={onRetry} />;
+}
 
 export function Home() {
   useShellTitle(t("Website"));
@@ -25,8 +34,8 @@ export function Home() {
     enabled: !!chosen,
     queryFn: ({ signal }) => api.get<{ title: string; html: string }>(`/api/app/website/preview/${chosen}`, {}, signal),
   });
-  if (q.isPending) return <PageLoading />;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
+  if (q.isPending) return <ListSkeleton />;
+  if (q.isError) return <Failed error={q.error} onRetry={() => void q.refetch()} />;
   const site = menu(q.data);
   return (
     <div className="np-page">
@@ -51,7 +60,7 @@ export function Home() {
                   {isolate(String(p.title))}
                 </button>
                 <span className="faint">/{isolate(String(p.slug ?? ""))}</span>
-                <Badge tone={p.status === "Published" ? "green" : "neutral"}>{isolate(String(p.status))}</Badge>
+                <StatusBadge value={p.status} tones={STATUS_TONES} />
                 {p.kind === "Post" ? <Badge tone="blue">{t("Post")}</Badge> : null}
                 <Link to={`/e/WebPage/${p.id}`}>{t("Edit")}</Link>
               </li>
@@ -63,9 +72,9 @@ export function Home() {
           {!chosen ? (
             <p className="faint">{t("Choose a page to see it as the site shows it.")}</p>
           ) : preview.isPending ? (
-            <PageLoading />
+            <ReaderSkeleton />
           ) : preview.isError ? (
-            <ErrorState error={preview.error} onRetry={() => void preview.refetch()} />
+            <Failed error={preview.error} onRetry={() => void preview.refetch()} />
           ) : (
             <article className="stack">
               <h4 className="font-semibold">{isolate(preview.data.title)}</h4>
