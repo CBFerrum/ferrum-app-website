@@ -5,7 +5,6 @@
 //! served; the home page, the blog, the menu, the sitemap and robots.txt; what link previews read;
 //! Markdown without scripts; the editor's preview, drafts included; and who may write.
 
-use ferrum_kernel::secret::SecretKey;
 use ferrum_kernel::tenant::NewTenant;
 use ferrum_kernel::{Ctx, Db, DbConfig, Doc, Error, HookRegistry, Kernel, KernelSettings, Site, SiteRequest};
 use ferrum_meta::Catalog;
@@ -72,7 +71,7 @@ async fn scenario() {
     let mut hooks = HookRegistry::default();
     ferrum_domain::register(&mut hooks);
     ferrum_app_website::register(&mut hooks);
-    let settings = KernelSettings { secret_key: Some(SecretKey::new([7u8; 32])), ..Default::default() };
+    let settings = KernelSettings::default();
     let k = Kernel::boot(db, catalog, hooks, settings, None).await.expect("boot");
     ferrum_domain::maintenance(&k).await.expect("partitions");
     let site = k.hooks.site("website").cloned().expect("the website's site handler");
