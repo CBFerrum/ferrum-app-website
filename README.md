@@ -7,7 +7,7 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.1.13-0d9488?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.1.14-0d9488?style=flat-square)](CHANGELOG.md)
 [![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue?style=flat-square)](LICENSE)
 [![Ferrum platform](https://img.shields.io/badge/runs%20on-Ferrum-2f5bea?style=flat-square)](https://github.com/CBFerrum/Ferrum)
 ![Rust](https://img.shields.io/badge/Rust-server-b7410e?style=flat-square&logo=rust)
@@ -38,7 +38,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 | | |
 |---|---|
-| 📦 Version | `0.1.13` |
+| 📦 Version | `0.1.14` |
 | 🧱 Kind | Own interface at `/website/` for editors; the public site on its own host |
 | 🗃️ What it adds | 2 entities (Web Page, Website Settings) in the `website` package |
 | 👥 Roles | 1: Site Editor |
@@ -232,6 +232,7 @@ Notes: 🟡 for Ferrum's online store means the separate Commerce app has its ow
 
 ### ✅ Recently shipped
 
+- [x] **0.1.14** Rebuilt on Ferrum-Frontend 06bd1a2: no routes to the screens apps no longer have.
 - [x] **0.1.13** Rebuilt on the tuned design system: better menu icons, a lighter first page, a visible scroll cue, cleaner print.
 - [x] **0.1.12** The redesigned interface: shaped loading, told-apart states.
 - [x] **0.1.11** Names in Arabic and Hindi.
