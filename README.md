@@ -44,7 +44,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 | 👥 Roles | 1: Site Editor |
 | 📊 Reports and print formats | none |
 | 🔗 Depends on | Ferrum `>=0.3.2, <0.4`; a domain given to it (Domains) to serve on |
-| 🤝 Works with | Domains (the host), Drive (public files to link), Forms (web forms) |
+| 🤝 Works with | Domains (the host) |
 | 🌍 Languages | The editor's interface in English, Arabic and Hindi (translated by a model, to be reviewed by native speakers). The public site is rendered with `lang="en"` |
 | 🧪 Tests | 4 Rust tests (one against a real PostgreSQL), 2 interface tests |
 | 📄 Licence | AGPL-3.0-only |
@@ -173,8 +173,6 @@ The app has no reports, print formats or upkeep.
 | With | How | Needs |
 |---|---|---|
 | Domains | An administrator gives the workspace's domain to the Website app; the app says it serves pages | Domains and a domain you control |
-| Drive | Public files can be linked as images or downloads | A public file's `https://` address |
-| Forms | Web forms are Forms' job; link to one from a page | Forms installed |
 | Commerce | A Commerce storefront is served the same way, on its own host | Commerce installed |
 | Search engines and link previews | `sitemap.xml`, `robots.txt`, canonical and Open Graph tags | Nothing extra |
 | Ferrum's assistant and MCP | Pages are records available to agents under each person's rights | Nothing extra |
@@ -232,7 +230,7 @@ Notes: 🟡 for Ferrum's online store means the separate Commerce app has its ow
 
 ### ✅ Recently shipped
 
-- [x] **0.1.14** Rebuilt on Ferrum-Frontend 06bd1a2: no routes to the screens apps no longer have.
+- [x] **0.1.14** Rebuilt on Ferrum-Frontend 06bd1a2.
 - [x] **0.1.13** Rebuilt on the tuned design system: better menu icons, a lighter first page, a visible scroll cue, cleaner print.
 - [x] **0.1.12** The redesigned interface: shaped loading, told-apart states.
 - [x] **0.1.11** Names in Arabic and Hindi.
@@ -243,7 +241,7 @@ Notes: 🟡 for Ferrum's online store means the separate Commerce app has its ow
 
 ### 🔜 Next up
 
-- [ ] **A media library.** Images are `https://` addresses today; Drive's public files may be linked.
+- [ ] **A media library.** Images are `https://` addresses today.
 - [ ] **Per-page SEO fields.** A title and image of their own for search and link previews.
 - [ ] **Embedded forms.** Today web forms are the Forms app's job, linked from a page.
 - [ ] **Nested menus and more than one level of pages.**
