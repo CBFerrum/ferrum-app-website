@@ -7,13 +7,13 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.2.1-0d9488?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-0d9488?style=flat-square)](CHANGELOG.md)
 [![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue?style=flat-square)](LICENSE)
 [![Ferrum platform](https://img.shields.io/badge/runs%20on-Ferrum-2f5bea?style=flat-square)](https://github.com/CBFerrum/Ferrum)
 ![Rust](https://img.shields.io/badge/Rust-server-b7410e?style=flat-square&logo=rust)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-data-336791?style=flat-square&logo=postgresql&logoColor=white)
 ![React](https://img.shields.io/badge/React-TypeScript-0ea5e9?style=flat-square&logo=react&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-5%20Rust%20%2B%202%20UI-16a34a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-11%20Rust%20%2B%202%20UI-16a34a?style=flat-square)
 
 ### A public website and blog for your workspace, written in Markdown and served on your own domain.
 
@@ -38,15 +38,15 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 | | |
 |---|---|
-| 📦 Version | `0.2.1` |
+| 📦 Version | `0.3.0` |
 | 🧱 Kind | Own interface at `/website/` for editors; the public site on its own host |
-| 🗃️ What it adds | 2 entities (Web Page, Website Settings) in the `website` package |
+| 🗃️ What it adds | 3 entities (Web Page, Redirect, Website Settings) and 2 tables in records (Block, Menu Link) in the `website` package; a table of page views |
 | 👥 Roles | 1: Site Editor |
-| 📊 Reports and print formats | none |
+| 📊 Reports and print formats | 1 report: Site Views |
 | 🔗 Depends on | Ferrum `>=0.4.0, <0.5`; a domain given to it (Domains) to serve on |
 | 🤝 Works with | Domains (the host) |
-| 🌍 Languages | The editor's interface in English, Arabic and Hindi (translated by a model, to be reviewed by native speakers). The public site is rendered with `lang="en"` |
-| 🧪 Tests | 5 Rust tests (one against a real PostgreSQL), 2 interface tests |
+| 🌍 Languages | The editor's interface in English, Arabic and Hindi (translated by a model, to be reviewed by native speakers). Each public page says its own language (`<html lang dir>`, right to left for Arabic, Hebrew, Persian and Urdu) and names its translations for search engines |
+| 🧪 Tests | 11 Rust tests (two against a real PostgreSQL, one of them walking 13 checks of the public site), 2 interface tests |
 | 📄 Licence | AGPL-3.0-only |
 
 ## 📸 Screenshots
@@ -83,11 +83,18 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 ### ✍️ Pages and posts
 
-- **Web Page.** One record for a page and for a blog post. A title (up to 200 characters), an address (`slug`), a kind (Page or Post), a summary (up to 300 characters, for search engines, link previews and the blog list), a Markdown body (up to 100,000 characters), an *In the Menu* box and a menu order.
+- **Web Page.** One record for a page and for a blog post. A title (up to 200 characters), an address (`slug`), a kind (Page or Post), a summary (up to 300 characters, for search engines, link previews and the blog list), a Markdown body (up to 100,000 characters) shown first, then its blocks, an *In the Menu* box, a menu order and the page it sits *Under* in the menu.
+- **Blocks.** After its text a page shows up to 60 blocks, in order: **Text** (a heading and Markdown), **Image** (a public file, this workspace's DAM web address or an `https://` picture, with what it shows and a caption), **Hero** (a large heading, text, a picture and a button), **Call to Action** (a heading, text and a button), **Form** (a published Forms form, shown in a frame) and **Latest Posts** (1 to 20 of the newest posts). A picture, a button's address or a form's name the site would not show is refused when saved, naming the block.
+- **Forms on a page.** A Form block names the form's address in Forms. The page is published only while that form is published and public; otherwise *Publish* says "no form with the address … is published". Website asks Forms through the platform's gate, as the system, only whether such a form is published (public knowledge), so a Site Editor needs no right in Forms. The frame comes from the workspace's own address, which the platform lets the workspace's addresses frame; without Forms the block shows nothing and a page with one is not published.
+- **Templates.** A page marked *Template* is never served and is not in the menu. *Make a Page From It* (the `use_template` operation, needing the right to make pages) makes a draft with its text and blocks and the title given. Three come with the app: About, Contact and Landing.
+- **Search engines.** A title for search engines (up to 70 characters), a preview image for link previews (with a large-image card), a canonical address (`https://` only) and *Hide From Search Engines* (`noindex`, and left out of the sitemap).
+- **Languages.** A page's language (a tag such as `en`, `hi` or `pt-BR`) and the page it translates: one translation per language, of the original only.
 - **Draft and Published.** A new page is a Draft, seen only in the preview by those who may read it. *Publish* sets the status and the time; *Back to Draft* takes it off the site.
 - **The address.** Made from the title when empty: lower-case letters, digits and dashes, up to 120 characters. It is unique. `/blog` and `/assets` belong to the site and cannot be taken. A title with no letters or digits to make one from needs an address given.
-- **The menu.** Published pages with *In the Menu* ticked, by menu order (lower first) and then title, at most 30 entries, plus a link to the blog.
-- **Website Settings.** The site's title (the workspace's name when empty), tagline, home page, the blog's heading (*Blog* when empty) and a footer (a copyright line with the site's title when empty).
+- **The menu.** Published pages with *In the Menu* ticked, by menu order (lower first) and then title, and the settings' *Links in the Menu* (up to 20: the shop, another site) among them by their order, at most 60 entries, plus a link to the blog. **One level below:** a page *Under* a top page opens in that page's sub-menu (`<details>`, no script). A page is refused a place under itself, under a page that is under another, under a page not in the menu or a template, or when pages are already under it. A page under one taken off the site is not shown.
+- **Redirects.** An old address that leads to a new one, permanent (301) or for now (302), served only when no page has the address. One step only: a redirect is refused when it would lead to another redirect's start or start where another leads, so no chain and no loop can form. Never from the platform's own paths (`/_…`), never to another host by `//` or `/\`; to another site (`https://…`) only when an administrator sets it. **When a published page's address changes,** a redirect from the old address is made, and those that led to the old one lead to the new one; a page published at a redirect's address takes it back.
+- **Website Settings.** The site's title (the workspace's name when empty), tagline, home page, the blog's heading (*Blog* when empty), a footer (the brand's footer text when empty, else a copyright line with the site's title), the brand, the layout (Classic, Centred or Wide) and the links in the menu.
+- **Brand.** The site shows the brand its settings name, else its address's, else the workspace's default (Ferrum's Brand records, kept by administrators): its colour and typeface through the brand's stylesheet, its logo in the header (and its dark-mode logo), its favicon, its footer text and links. A Site Editor may read the brands to pick one.
 - **Create menu.** *Web page* in Ferrum's create menu starts a new draft.
 
 ### 🌐 The public site
@@ -96,14 +103,17 @@ Website is for a company that needs a clear public site: a home page, a few page
 |---|---|
 | `/` | The home page the settings name, else the latest posts |
 | `/blog` | The posts, newest first, with their dates and summaries (up to 50) |
-| `/{slug}` | A published page or post; a post shows its date |
-| `/sitemap.xml` | The home, the blog and every published page, with the day each was published |
+| `/{slug}` | A published page or post (not a template); a post shows its date |
+| any other address | The redirect from it, once, else not found |
+| `/sitemap.xml` | The home, the blog and every published page not hidden from search engines, with the day each was published |
 | `/robots.txt` | Allows everything and points to the sitemap |
 | `/assets/site.css` | The stylesheet, cached for a year |
 
-- **Drafts and unknown addresses are not found,** and the site is read only.
-- **Link previews and search.** Each page carries its title with the site's name, the summary as description, a canonical link, and Open Graph tags (site name, title, description and address).
-- **No script, no web fonts.** One stylesheet that follows the reader's light or dark setting.
+- **Drafts, templates and unknown addresses are not found** alike, and the site is read only.
+- **Views counted, nothing about the visitor kept.** Each page served to a person adds one to that address's count for the day (the workspace's day); crawlers and link previews (a `User-Agent` naming a bot, crawler, spider or preview), the stylesheet, the sitemap, robots, redirects and unknown addresses add nothing, so a flood of made-up addresses adds no row. No address, cookie or visitor is kept. The **Site Views** report lists the 50 addresses most viewed in the last 30 days; days older than 400 are deleted by upkeep.
+- **Link previews and search.** Each page carries its title (or its title for search engines) with the site's name, the summary as description, a canonical link, its translations (`hreflang`), and Open Graph tags (site name, title, description, address and preview image).
+- **No script.** The site's stylesheet follows the reader's light or dark setting and takes the brand's colour and typeface; no font from another site. A page's form frame is the only thing it loads from another address, and only from the workspace's own.
+- **Own CSS: not yet.** A Site Editor's own stylesheet waits for a CSS parser to be chosen (see the roadmap); scripts are refused by design, since a site address may later carry a customer's session.
 - **Served on the platform's host.** The platform hands every path of a `site:website` host to the Website app with the site's own origin, never the caller's.
 
 ### 🔐 Safe Markdown
@@ -112,7 +122,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 - **Raw HTML is dropped,** and its text is not shown.
 - **Links** go to `https://`, `http://`, `mailto:`, `#…` or a path of this site (`/…`, never `//`). A link elsewhere keeps only its text.
 - **Images** are shown only from `https://` addresses; otherwise their description stays as text.
-- **Escaping.** All text is escaped in HTML and in attributes.
+- **Escaping.** All text is escaped in HTML and in attributes: page and block words, alternative text, button words, addresses.
 
 ### 👁️ The editors' page
 
@@ -125,7 +135,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 | Role | Can do |
 |---|---|
-| **Site Editor** | Reads, writes, creates, deletes and exports pages; reads, writes and creates the site's settings. Publishes and unpublishes. |
+| **Site Editor** | Reads, writes, creates, deletes and exports pages; reads, writes, creates and deletes redirects (to another site only if also an administrator); reads, writes and creates the site's settings; reads brands. Publishes, unpublishes and makes pages from templates. |
 
 - **Assistant.** Ferrum's assistant knows pages are Draft or Published and suggests "Which pages are still drafts?" and "What did we publish this month?".
 - **Languages.** The editor's interface is in English, Arabic and Hindi with right-to-left mirroring.
@@ -158,22 +168,28 @@ flowchart TD
 
 | Entity | What it is | Key fields or states |
 |---|---|---|
-| Web Page | A page or a blog post at `/{slug}` | title, slug, kind (Page / Post), summary, body (Markdown), Draft / Published, published at, in menu, menu order |
-| Website Settings | The site's one settings record | site title, tagline, home page, blog title, footer |
+| Web Page | A page or a blog post at `/{slug}` | title, slug, kind (Page / Post), summary, body (Markdown), blocks, Draft / Published, published at, in menu, menu order, under, language, translation of, title for search engines, preview image, canonical address, hide from search engines, template |
+| Block (in a page) | One part of a page after its text | kind (Text, Image, Hero, Call to Action, Form, Latest Posts), heading, text, image, image description, button label and address, form, posts |
+| Redirect | An old address leading to a new one | from, to, permanent |
+| Website Settings | The site's one settings record | site title, tagline, home page, blog title, footer, brand, layout, links in the menu |
+| Menu Link (in the settings) | An address in the menu | label, address, menu order |
 
 | Action | Who | What it does |
 |---|---|---|
 | `publish` | Site Editor | Publishes a draft and records the time. |
 | `unpublish` | Site Editor | Takes a published page back to a draft. |
+| `use_template` | Whoever may make pages | Makes a draft page from a template with the title given. |
 
-The app has no reports, print formats or upkeep.
+Each carries a contract (what it changes, returns and means when done), so an agent builds and publishes a whole site through the same operations. Report: Site Views. Upkeep: deletes page views older than 400 days. Table `website_view` (per address and day: a count only).
 
 ## 🔌 Integrations
 
 | With | How | Needs |
 |---|---|---|
 | Domains | An administrator gives the workspace's domain to the Website app; the app says it serves pages | Domains and a domain you control |
-| Commerce | A Commerce storefront is served the same way, on its own host | Commerce installed |
+| Commerce | A Commerce storefront is served the same way, on its own host; a menu link leads to it | Commerce installed |
+| Forms | A Form block frames a published public form | Forms installed |
+| Brand | The site shows the workspace's brand: colour, typeface, logo, favicon, footer | A Brand record (administrators) |
 | Search engines and link previews | `sitemap.xml`, `robots.txt`, canonical and Open Graph tags | Nothing extra |
 | Ferrum's assistant and MCP | Pages are records available to agents under each person's rights | Nothing extra |
 
@@ -188,18 +204,18 @@ The leaders are website builders: Webflow, Wix, WordPress, Squarespace and Odoo 
 | Draft, preview and publish | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Markdown writing | ✅ | ❌ | ❌ | 🟡 | 🟡 | ❌ |
 | Visual drag-and-drop builder | ❌ | ✅ | ✅ | 🟡 | ✅ | ✅ |
-| Templates and themes | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Templates and themes | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Custom CSS and code | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Media library | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Forms built in | ❌ | ✅ | ✅ | 🟡 | ✅ | ✅ |
+| Forms built in | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ |
 | Online store | 🟡 | ✅ | ✅ | 🟡 | ✅ | ✅ |
-| Nested menus | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Nested menus | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Custom domain | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Sitemap and robots | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Link previews (Open Graph) | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ |
-| Per-page SEO fields and redirects | ❌ | ✅ | ✅ | 🟡 | ✅ | ✅ |
-| Multi-language sites | ❌ | ✅ | ✅ | 🟡 | 🟡 | ✅ |
-| Site analytics | ❌ | 🟡 | ✅ | 🟡 | ✅ | ✅ |
+| Per-page SEO fields and redirects | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ |
+| Multi-language sites | 🟡 | ✅ | ✅ | 🟡 | 🟡 | ✅ |
+| Site analytics | 🟡 | 🟡 | ✅ | 🟡 | ✅ | ✅ |
 | Plugins and app marketplace | ❌ | 🟡 | ✅ | ✅ | 🟡 | ✅ |
 | Server-rendered with no script on the page | ✅ | ❌ | ❌ | 🟡 | ❌ | ❌ |
 | Same data as CRM, shop and accounting | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
@@ -207,7 +223,7 @@ The leaders are website builders: Webflow, Wix, WordPress, Squarespace and Odoo 
 | Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ |
 | No per-site subscription | ✅ | ❌ | ❌ | 🟡 | ❌ | 🟡 |
 
-Notes: 🟡 for Ferrum's online store means the separate Commerce app has its own storefront; Website does not sell. WordPress's Markdown, forms, store, SEO and multi-language support come through plugins. Odoo's Community edition is open source, and its Website builder features in Enterprise differ, hence 🟡. Hosted builders' own pages usually run scripts of their own.
+Notes: Ferrum's templates are pages to start from, with the workspace's brand and three layouts, not a theme marketplace (🟡). Nested menus go one level below the top (🟡). Multi-language: pages say their language and name their translations; choosing a translation by the visitor's language waits for the platform (🟡). Analytics are page views per address and day, kept without anything about the visitor (🟡: no referrers or sessions). 🟡 for Ferrum's online store means the separate Commerce app has its own storefront; Website does not sell. WordPress's Markdown, forms, store, SEO and multi-language support come through plugins. Odoo's Community edition is open source, and its Website builder features in Enterprise differ, hence 🟡. Hosted builders' own pages usually run scripts of their own.
 
 ### 🏆 Where Website stands out
 
@@ -218,10 +234,10 @@ Notes: 🟡 for Ferrum's online store means the separate Commerce app has its ow
 
 ### 🚧 Where the leaders are still ahead
 
-- 🎨 **Visual building,** templates, themes and custom CSS.
+- 🎨 **Visual building,** themes and custom CSS.
 - 🖼️ **Media library** and image handling.
-- 🔎 **SEO tooling,** redirects, analytics and multi-language sites.
-- 🧰 **Ecosystem.** Plugins, forms and a large marketplace.
+- 🔎 **Analytics** beyond page views, and choosing a page's language by the visitor's.
+- 🧰 **Ecosystem.** Plugins and a large marketplace.
 
 > [!NOTE]
 > Leader columns are from public product information as of November 2026 and may change.
@@ -230,6 +246,7 @@ Notes: 🟡 for Ferrum's online store means the separate Commerce app has its ow
 
 ### ✅ Recently shipped
 
+- [x] **0.3.0** Blocks (text, image, hero, call to action, form, latest posts), templates, one level of sub-menu and menu links, search-engine fields, one-step redirects (made when an address changes), page languages, the workspace's brand and three layouts, and page views without anything about the visitor.
 - [x] **0.2.1** Publish and Back to Draft say what they do, for people and agents alike.
 - [x] **0.2.0** Upkeep takes one workspace: needs Ferrum 0.4.0.
 - [x] **0.1.14** Rebuilt on Ferrum-Frontend 06bd1a2.
@@ -243,20 +260,15 @@ Notes: 🟡 for Ferrum's online store means the separate Commerce app has its ow
 
 ### 🔜 Next up
 
-- [ ] **A media library.** Images are `https://` addresses today.
-- [ ] **Per-page SEO fields.** A title and image of their own for search and link previews.
-- [ ] **Embedded forms.** Today web forms are the Forms app's job, linked from a page.
-- [ ] **Nested menus and more than one level of pages.**
+- [ ] **A media library.** Pictures from DAM (waits for DAM's web addresses).
+- [ ] **The visitor's language** chooses a page's translation (waits for the platform's language headers).
+- [ ] **Own CSS,** parsed and limited to the site's own files (waits for the choice of a CSS parser).
 - [ ] **Scheduled publishing.**
 
 ### 🔭 Later
 
-- [ ] Themes beyond the light and dark stylesheet, and custom CSS.
-- [ ] Redirects.
+- [ ] More than one level of sub-menu.
 - [ ] An RSS feed for the blog.
-- [ ] Site language and translations of pages (the public pages carry `lang="en"` today).
-- [ ] Page analytics.
-- [ ] A visual editor.
 - [ ] Preview in the site's own stylesheet.
 
 ## 🚀 Install

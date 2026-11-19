@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0
+
+Package `website` 0.2.0: new entities Redirect, Block (in a page) and Menu Link (in the settings), new fields on Web Page and Website Settings, the table `website_view` (`sql/001_website.sql`), three seeded templates. Existing pages open unchanged (a page's body is no longer required). Needs a platform with the Brand record (core 0.4.0).
+
+- **Blocks.** Text, Image, Hero, Call to Action, Form and Latest Posts after a page's text, up to 60, each drawn escaped; a picture, button address or form name the site would not draw is refused when saved.
+- **A form on a page.** A Form block frames a published public form of the workspace from its own address; a page with one is published only while that form is (asked of Forms through the gate, yes or no). Without Forms the block shows nothing.
+- **Templates.** Never served; `use_template` makes a draft from one. About, Contact and Landing come with the app.
+- **The menu.** One level of sub-menu under a top page (`<details>`, no script), checked so it stays one level when saves race; links of the settings among the pages.
+- **Redirects.** One step, never a chain or a loop; from paths of the site only; to another site only when an administrator sets it; made when a published page's address changes.
+- **Search engines.** A title for search engines, a preview image, a canonical address, `noindex` (left out of the sitemap), and `hreflang` between a page and its translations.
+- **Languages.** A page's language and the page it translates; `<html lang dir>` from it.
+- **Brand and layout.** The site shows the workspace's brand (colour, typeface, logo, favicon, footer) and one of three layouts.
+- **Page views.** Counted per address and day for people, not crawlers; only addresses that answer a page count, so a flood of made-up ones adds no row. Nothing about the visitor is kept. Report *Site Views*; days older than 400 deleted by upkeep.
+- **Not in this release:** own CSS (waits for a CSS parser to be chosen); the visitor's language choosing a translation (waits for the platform).
+
 ## 0.2.1
 
 No database or interface change.

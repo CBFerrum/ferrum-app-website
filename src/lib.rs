@@ -2,14 +2,21 @@
 //! Markdown, a menu, a home page, and the site served on its own `site:website` host, rendered on
 //! the server so search engines and link previews read it (Ferrum docs/plan/apps-ui.md §7.3).
 //!
-//! * `pages`: addresses made from titles, kept off the site's own paths; publishing and taking
-//!   back.
-//! * `site`: the public pages, the blog, the sitemap and robots.txt, and safe Markdown: raw HTML
-//!   never passes, links are the web's, mail or the site's own, and images are https:// only.
+//! * `pages`: addresses made from titles, kept off the site's own paths; blocks, the menu's one
+//!   level, languages and search-engine fields checked; publishing and taking back; pages made
+//!   from templates.
+//! * `redirects`: old addresses leading on, one step only, to another site only when an
+//!   administrator says so; made when a published page's address changes.
+//! * `site`: the public pages with their blocks, brand and languages, the blog, the sitemap and
+//!   robots.txt, redirects served, views counted; safe Markdown: raw HTML never passes, links are
+//!   the web's, mail or the site's own, and images are https:// only.
+//! * `reports`: the addresses most viewed.
 //!
 //! This app's own design; no code was copied (docs/PROVENANCE.md).
 
 mod pages;
+mod redirects;
+mod reports;
 mod site;
 
 use ferrum_domain::reports::ReportSource;
@@ -27,19 +34,24 @@ pub fn packages() -> std::result::Result<Vec<ferrum_meta::Package>, ferrum_meta:
     ferrum_meta::catalog::load_embedded(EMBEDDED)
 }
 
-/// Registers this app's document hook and its public site.
+/// Registers this app's document hooks and its public site.
 pub fn register(hooks: &mut HookRegistry) {
     hooks.register("WebPage", Arc::new(pages::PageHook));
+    hooks.register("WebRedirect", Arc::new(redirects::RedirectHook));
+    hooks.register("WebsiteSettings", Arc::new(pages::SettingsHook));
     hooks.add_site("website", Arc::new(site::WebsiteSite));
 }
 
-/// This app's reports: none of its own yet.
+/// This app's reports: the addresses most viewed.
 pub fn reports() -> Vec<Arc<dyn ReportSource>> {
-    vec![]
+    vec![Arc::new(reports::WebsiteReports)]
 }
 
-/// Upkeep: nothing yet.
-pub async fn maintenance(_k: &Kernel, _tenant: uuid::Uuid) -> Result<()> {
+/// Upkeep: page views are kept 400 days.
+pub async fn maintenance(k: &Kernel, tenant: uuid::Uuid) -> Result<()> {
+    let mut tx = k.db.tenant_tx(tenant).await?;
+    sqlx::query("delete from website_view where tenant_id = $1 and day < current_date - 400").bind(tenant).execute(&mut *tx).await?;
+    tx.commit().await?;
     Ok(())
 }
 
