@@ -56,6 +56,26 @@ mod tests {
         assert!(UI.iter().any(|(p, _)| *p == "index.html") && !UI.iter().any(|(p, _)| p.starts_with('.')), "{}", ui.digest);
     }
 
+    /// People, agents and outside callers use the same operations: each says what it changes, what it returns and
+    /// what "done" means (`scripts/agent_parity.py` in the platform).
+    #[test]
+    fn every_action_has_a_contract() {
+        let mut seen = 0;
+        for p in packages().expect("packages") {
+            for e in &p.entities {
+                for a in &e.actions {
+                    let c = a.contract.as_ref().unwrap_or_else(|| panic!("{}.{} has no contract", e.name, a.name));
+                    let v = serde_json::to_value(c).expect("contract");
+                    for key in ["effect", "returns", "completion"] {
+                        assert!(!v[key].is_null(), "{}.{}: contract without {key}: {v}", e.name, a.name);
+                    }
+                    seen += 1;
+                }
+            }
+        }
+        assert!(seen >= 2, "publish and unpublish at least");
+    }
+
     #[test]
     fn addresses_from_titles() {
         use pages::slugify;

@@ -17,8 +17,10 @@
     - {name: menu_order, type: int, default: 100, min: 0, max: 10000, description: "Lower comes first in the menu"}
   list: {columns: [title, slug, kind, status, in_menu, published_at], sort: title asc}
   actions:
-    - {name: publish, label: Publish, permission: write, condition: "doc.status == 'Draft'"}
-    - {name: unpublish, label: Back to Draft, permission: write, condition: "doc.status == 'Published'"}
+    - {name: publish, label: Publish, permission: write, condition: "doc.status == 'Draft'",
+       contract: {effect: transactional_action, returns: {type: object, properties: {status: {type: string}, slug: {type: [string, "null"]}}}, completion: "The page is Published with the time now and the site serves it at /{slug}"}}
+    - {name: unpublish, label: Back to Draft, permission: write, condition: "doc.status == 'Published'",
+       contract: {effect: transactional_action, returns: {type: object, properties: {status: {type: string}, slug: {type: [string, "null"]}}}, completion: "The page is a Draft, and the site answers its address as it answers an unknown one"}}
 
 - name: WebsiteSettings
   label: Website Settings

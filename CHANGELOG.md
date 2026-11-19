@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+No database or interface change.
+
+- **Publish and Back to Draft carry contracts.** Each says what it changes, what it returns (the status and the address) and what "done" means, so an agent reaches them through the gate as a person does (`scripts/agent_parity.py` finds no action without one).
+
 ## 0.2.0
 
 No database or interface change. Needs Ferrum 0.4.0 (apps' upkeep runs one workspace at a time, on whichever replica is free).

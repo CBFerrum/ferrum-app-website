@@ -7,13 +7,13 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.2.0-0d9488?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.1-0d9488?style=flat-square)](CHANGELOG.md)
 [![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue?style=flat-square)](LICENSE)
 [![Ferrum platform](https://img.shields.io/badge/runs%20on-Ferrum-2f5bea?style=flat-square)](https://github.com/CBFerrum/Ferrum)
 ![Rust](https://img.shields.io/badge/Rust-server-b7410e?style=flat-square&logo=rust)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-data-336791?style=flat-square&logo=postgresql&logoColor=white)
 ![React](https://img.shields.io/badge/React-TypeScript-0ea5e9?style=flat-square&logo=react&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-4%20Rust%20%2B%202%20UI-16a34a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-5%20Rust%20%2B%202%20UI-16a34a?style=flat-square)
 
 ### A public website and blog for your workspace, written in Markdown and served on your own domain.
 
@@ -38,7 +38,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 | | |
 |---|---|
-| 📦 Version | `0.1.14` |
+| 📦 Version | `0.2.1` |
 | 🧱 Kind | Own interface at `/website/` for editors; the public site on its own host |
 | 🗃️ What it adds | 2 entities (Web Page, Website Settings) in the `website` package |
 | 👥 Roles | 1: Site Editor |
@@ -46,7 +46,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 | 🔗 Depends on | Ferrum `>=0.4.0, <0.5`; a domain given to it (Domains) to serve on |
 | 🤝 Works with | Domains (the host) |
 | 🌍 Languages | The editor's interface in English, Arabic and Hindi (translated by a model, to be reviewed by native speakers). The public site is rendered with `lang="en"` |
-| 🧪 Tests | 4 Rust tests (one against a real PostgreSQL), 2 interface tests |
+| 🧪 Tests | 5 Rust tests (one against a real PostgreSQL), 2 interface tests |
 | 📄 Licence | AGPL-3.0-only |
 
 ## 📸 Screenshots
@@ -230,6 +230,7 @@ Notes: 🟡 for Ferrum's online store means the separate Commerce app has its ow
 
 ### ✅ Recently shipped
 
+- [x] **0.2.1** Publish and Back to Draft say what they do, for people and agents alike.
 - [x] **0.2.0** Upkeep takes one workspace: needs Ferrum 0.4.0.
 - [x] **0.1.14** Rebuilt on Ferrum-Frontend 06bd1a2.
 - [x] **0.1.13** Rebuilt on the tuned design system: better menu icons, a lighter first page, a visible scroll cue, cleaner print.
