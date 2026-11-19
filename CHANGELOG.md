@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.3.2
+
+Package `website` 0.2.0 gains, before its first release: the field `WebsiteSettings.custom_css` (read only) and the action `set_own_css`. New dependency `cssparser` 0.38 (MPL-2.0, already in the tree through ammonia). `ui/dist` rebuilt with Ferrum-Frontend `aa75069`.
+
+- **Own CSS, from an allow-list.** `set_own_css {css}` parses the sheet, keeps only style rules, `@media`, `@supports`, `@keyframes` and `@font-face`, and writes it out again from what it parsed; it refuses `@import`, `@namespace`, `@charset` but first, every other at-rule, every address that is not one of the site's own files (public files, the brand's files, small `data:` pictures outside `@font-face`), an address in a selector, `expression(…)`, a declaration that does not parse, and more than 50,000 bytes, 2,000 rules or 8 nested at-rules. Served at `/assets/custom.css` (`text/css`, `nosniff`, the site's policy), linked after the brand's; the record's update cannot write it.
+- **The page editor at the page's own address** (`/website/e/WebPage/{id}`): the page's fields in a panel beside its blocks, saved together; *Publish* and *Back to draft* there. No separate blocks page.
+- **Proven under racing saves:** the menu stays one level deep and redirects one step long when two saves race (tests that fail with the locks taken out).
+- The publish-time form check stays a gate call as the system, not a declared use: a declared use would make Forms required to install Website (see `src/pages.rs`).
+
+## 0.3.1
+
+No database change. Interface only, `ui/dist` rebuilt with Ferrum-Frontend `aa75069`.
+
+- **The blocks editor** at `/website/blocks/{page}`: each block shows the fields its kind uses; blocks move by drag (a handle) or by *Move up* / *Move down*, keeping focus on the button pressed; added by kind and removed; saved with the page through the record's update. Pictures are uploaded as public files or given as `https://` addresses; a Form block offers the published public forms the person can read, and the Form kind is not offered without Forms. The site's rendering of the saved page is beside it.
+- **Templates on the home:** *Make a page from it* runs `use_template` with the title typed and opens the draft. Links to *Redirects* and *Site views*; templates are not listed among the pages; the menu shown is its top, as the site's.
+- The route table is its own module (`ui/src/routes.tsx`) so tests mount the real one. Words and names of the new screens and fields in Arabic and Hindi (by a model, to be reviewed by native speakers).
+
+## 0.3.0
+
+Package `website` 0.2.0: new entities Redirect, Block (in a page) and Menu Link (in the settings), new fields on Web Page and Website Settings, the table `website_view` (`sql/001_website.sql`), three seeded templates. Existing pages open unchanged (a page's body is no longer required). Needs a platform with the Brand record (core 0.4.0).
+
+- **Blocks.** Text, Image, Hero, Call to Action, Form and Latest Posts after a page's text, up to 60, each drawn escaped; a picture, button address or form name the site would not draw is refused when saved.
+- **A form on a page.** A Form block frames a published public form of the workspace from its own address; a page with one is published only while that form is (asked of Forms through the gate, yes or no). Without Forms the block shows nothing.
+- **Templates.** Never served; `use_template` makes a draft from one. About, Contact and Landing come with the app.
+- **The menu.** One level of sub-menu under a top page (`<details>`, no script), checked so it stays one level when saves race; links of the settings among the pages.
+- **Redirects.** One step, never a chain or a loop; from paths of the site only; to another site only when an administrator sets it; made when a published page's address changes.
+- **Search engines.** A title for search engines, a preview image, a canonical address, `noindex` (left out of the sitemap), and `hreflang` between a page and its translations.
+- **Languages.** A page's language and the page it translates; `<html lang dir>` from it.
+- **Brand and layout.** The site shows the workspace's brand (colour, typeface, logo, favicon, footer) and one of three layouts.
+- **Page views.** Counted per address and day for people, not crawlers; only addresses that answer a page count, so a flood of made-up ones adds no row. Nothing about the visitor is kept. Report *Site Views*; days older than 400 deleted by upkeep.
+- **Not in this release:** own CSS (waits for a CSS parser to be chosen); the visitor's language choosing a translation (waits for the platform).
+
+## 0.2.1
+
+No database or interface change.
+
+- **Publish and Back to Draft carry contracts.** Each says what it changes, what it returns (the status and the address) and what "done" means, so an agent reaches them through the gate as a person does (`scripts/agent_parity.py` finds no action without one).
+
 ## 0.2.0
 
 No database or interface change. Needs Ferrum 0.4.0 (apps' upkeep runs one workspace at a time, on whichever replica is free).

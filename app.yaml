@@ -1,8 +1,8 @@
 id: website
 name: Website
-version: 0.2.0
+version: 0.3.2
 publisher: cbferrum
-summary: "The workspace's public website: pages and blog posts written in Markdown, a menu, and the site on its own host, rendered on the server"
+summary: "The workspace's public website: pages and blog posts in Markdown and blocks, templates, a menu with sub-menus, redirects, the brand, and the site on its own host, rendered on the server"
 description: README.md
 categories: [marketing]
 license: AGPL-3.0-only
@@ -34,8 +34,10 @@ contributes:
     - id: website
       title: "Website"
       instructions: >-
-        A WebPage (Draft, Published) is a page or a blog post written in Markdown; only published ones are on the
-        site. WebsiteSettings holds the menu and the site's own host.
+        A WebPage (Draft, Published) is a page or a blog post written in Markdown with blocks after its text; only
+        published ones that are not templates are on the site. A template (is_template) makes draft pages
+        (use_template). WebRedirect leads an old address to a new one, one step. WebsiteSettings holds the brand,
+        layout and menu links; site views are a report (site_views).
       suggestions:
         - "Which pages are still drafts?"
         - "What did we publish this month?"

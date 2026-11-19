@@ -4,21 +4,67 @@
   kind: master
   module: website
   title_field: title
-  description: "A page or a blog post of the public site, at /{slug}. Published, it is on the site; a draft is seen only in the preview, by those who may read it."
+  description: "A page or a blog post of the public site, at /{slug}. Published, it is on the site; a draft is seen only in the preview, by those who may read it. A template is never served: pages are made from it."
   fields:
     - {name: title, type: data, required: true, in_list: true, max_length: 200}
     - {name: slug, type: data, unique: true, in_list: true, max_length: 120, description: "Its address on the site: lower-case letters, digits and dashes; made from the title when empty"}
     - {name: kind, type: select, options: [Page, Post], default: Page, required: true, in_list: true, in_filter: true}
     - {name: summary, type: text, max_length: 300, description: "A line for search engines, link previews and the blog's list"}
-    - {name: body, type: markdown, required: true, max_length: 100000, description: "Markdown; raw HTML is not shown, and images are https:// addresses"}
+    - {name: body, type: markdown, max_length: 100000, description: "Markdown, shown before the blocks; raw HTML is not shown, and images are https:// addresses"}
+    - {name: blocks, type: table, of: WebBlock, description: "What the page shows after its text, in order (at most 60)"}
     - {name: status, type: select, options: [Draft, Published], default: Draft, read_only: true, in_list: true, in_filter: true}
     - {name: published_at, type: datetime, read_only: true, no_copy: true, in_list: true}
     - {name: in_menu, type: check, label: In the Menu, in_list: true}
     - {name: menu_order, type: int, default: 100, min: 0, max: 10000, description: "Lower comes first in the menu"}
+    - {name: menu_parent, type: link, to: WebPage, label: Under, description: "In the menu under this page (one level: that page is at the top of the menu); empty: at the top"}
+    - {name: language, type: data, max_length: 35, in_filter: true, description: "Its language's tag (en, hi, pt-BR); empty: the workspace's"}
+    - {name: translation_of, type: link, to: WebPage, description: "The page this one translates; the menu shows the page it translates"}
+    - {name: seo_title, type: data, max_length: 70, label: Title for Search Engines, description: "Empty: the title"}
+    - {name: og_image, type: data, max_length: 500, label: Preview Image, description: "Shown by link previews: a public image (/files/public/<id>), a DAM web address or an https:// address"}
+    - {name: canonical_url, type: data, max_length: 500, label: Canonical Address, description: "https:// only; empty: this page's own"}
+    - {name: noindex, type: check, label: Hide From Search Engines}
+    - {name: is_template, type: check, in_list: true, in_filter: true, label: Template, description: "Never served and never in the menu; offered when making a page"}
+  unique: [[translation_of, language]]
   list: {columns: [title, slug, kind, status, in_menu, published_at], sort: title asc}
   actions:
-    - {name: publish, label: Publish, permission: write, condition: "doc.status == 'Draft'"}
-    - {name: unpublish, label: Back to Draft, permission: write, condition: "doc.status == 'Published'"}
+    - {name: publish, label: Publish, permission: write, condition: "doc.status == 'Draft' && !doc.is_template",
+       contract: {effect: transactional_action, returns: {type: object, properties: {status: {type: string}, slug: {type: [string, "null"]}}}, completion: "The page is Published with the time now and the site serves it at /{slug}"}}
+    - {name: unpublish, label: Back to Draft, permission: write, condition: "doc.status == 'Published'",
+       contract: {effect: transactional_action, returns: {type: object, properties: {status: {type: string}, slug: {type: [string, "null"]}}}, completion: "The page is a Draft, and the site answers its address as it answers an unknown one"}}
+    - name: use_template
+      label: Make a Page From It
+      permission: create
+      condition: "doc.is_template"
+      params: [{name: title, type: data, label: Title, required: true}]
+      contract: {effect: transactional_action, returns: {type: object, properties: {page: {type: string, "x-ferrum-link": WebPage}}}, completion: "A draft page exists with this template's text and blocks and the title given"}
+
+- name: WebBlock
+  label: Block
+  label_plural: Blocks
+  kind: child
+  fields:
+    - {name: kind, type: select, options: [Text, Image, Hero, Call to Action, Form, Latest Posts], required: true, in_list: true}
+    - {name: heading, type: data, max_length: 200, in_list: true}
+    - {name: text, type: markdown, max_length: 20000, description: "Markdown; raw HTML is not shown"}
+    - {name: image, type: data, max_length: 500, description: "/files/public/<id>, a DAM web address (/api/site/<workspace>/dam/w/<id>) or https://"}
+    - {name: image_alt, type: data, max_length: 300, label: Image Description}
+    - {name: button_label, type: data, max_length: 60}
+    - {name: button_url, type: data, max_length: 500, label: Button Address}
+    - {name: form, type: data, max_length: 80, description: "A published Forms form's address name (its slug)"}
+    - {name: posts, type: int, min: 1, max: 20, default: 5, description: "How many of the latest posts"}
+
+- name: WebRedirect
+  label: Redirect
+  label_plural: Redirects
+  kind: master
+  module: website
+  title_field: from_path
+  description: "An old address of the site that leads to a new one, one step only. Changing a published page's address makes one."
+  fields:
+    - {name: from_path, type: data, required: true, unique: true, in_list: true, max_length: 300, label: From, description: "A path of the site: /old-page"}
+    - {name: to, type: data, required: true, in_list: true, max_length: 500, description: "A path of the site (/new-page), or an https:// address on another site when an administrator sets it"}
+    - {name: permanent, type: check, default: true, in_list: true, description: "Permanent (301); otherwise for now (302)"}
+  list: {columns: [from_path, to, permanent], sort: from_path asc}
 
 - name: WebsiteSettings
   label: Website Settings
@@ -29,4 +75,22 @@
     - {name: tagline, type: data, max_length: 200}
     - {name: home_page, type: link, to: WebPage, description: "The page at the site's root; the latest posts when empty"}
     - {name: blog_title, type: data, max_length: 60, description: "The heading of /blog; Blog when empty"}
-    - {name: footer, type: text, max_length: 1000}
+    - {name: footer, type: text, max_length: 1000, description: "Empty: the brand's footer text"}
+    - {name: brand, type: link, to: Brand, description: "The logo, colour and typeface the site shows; empty: the address's brand, else the workspace's default"}
+    - {name: layout, type: select, options: [Classic, Centred, Wide], default: Classic}
+    - {name: menu_links, type: table, of: WebMenuLink, label: Links in the Menu, description: "Addresses in the menu beside the pages: the shop, another site"}
+    - {name: custom_css, type: code, read_only: true, no_copy: true, max_length: 60000, label: Own CSS, description: "The site's own stylesheet as served, after its theme: set with Set Own CSS, which parses it and keeps only what is allowed"}
+  actions:
+    - name: set_own_css
+      label: Set Own CSS
+      permission: write
+      params: [{name: css, type: text, label: Own CSS, description: "Style rules, @media, @supports, @keyframes and @font-face; addresses only of the site's own files. Empty: none"}]
+      contract: {effect: transactional_action, returns: {type: object, properties: {css: {type: string}}}, completion: "The site serves exactly the returned sheet at /assets/custom.css, after its theme: the sheet given, parsed and written again with only style rules and @media, @supports, @keyframes and @font-face, every address one of the site's own files; or none when empty"}
+
+- name: WebMenuLink
+  label: Menu Link
+  kind: child
+  fields:
+    - {name: label, type: data, required: true, max_length: 60, in_list: true}
+    - {name: url, type: data, required: true, max_length: 500, in_list: true, label: Address, description: "https://…, mailto:… or a path of the site (/blog)"}
+    - {name: menu_order, type: int, default: 100, min: 0, max: 10000, in_list: true}

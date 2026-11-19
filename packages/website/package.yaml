@@ -1,7 +1,7 @@
 package: website
-version: 0.1.0
+version: 0.2.0
 label: Website
-description: "The workspace's public website: pages and blog posts written in Markdown, a menu, and the site served on its own host"
+description: "The workspace's public website: pages and blog posts written in Markdown and blocks, a menu, redirects, and the site served on its own host"
 depends: [core]
 
 modules:
@@ -9,11 +9,45 @@ modules:
     label: Website
     icon: file-text
     order: 59
-    items: [WebPage, WebsiteSettings]
+    items: [WebPage, WebRedirect, WebsiteSettings]
 
 roles:
   - name: Site Editor
-    description: Writes pages and posts, publishes them, and keeps the site's settings.
+    description: Writes pages and posts, publishes them, keeps the redirects and the site's settings, and picks the site's brand.
     permissions:
       - {entity: WebPage, read: true, write: true, create: true, delete: true, export: true}
+      - {entity: WebRedirect, read: true, write: true, create: true, delete: true}
       - {entity: WebsiteSettings, read: true, write: true, create: true}
+      # To choose the site's brand among the workspace's: a brand is shown to everyone anyway.
+      - {entity: Brand, read: true}
+
+# Three pages to start from: never served, each makes a draft with its text and blocks ("Make a Page From It").
+seed:
+  - entity: WebPage
+    key: [slug]
+    records:
+      - title: About Template
+        slug: template-about
+        is_template: true
+        summary: Who we are and what we do
+        body: "Tell visitors who you are in a few sentences."
+        blocks:
+          - {kind: Text, heading: What we do, text: "Describe what you make or offer, and for whom."}
+          - {kind: Text, heading: How we work, text: "Say what makes working with you different."}
+          - {kind: Call to Action, heading: Talk to us, button_label: Contact us, button_url: /contact}
+      - title: Contact Template
+        slug: template-contact
+        is_template: true
+        summary: How to reach us
+        body: "Write to us, call us, or visit us."
+        blocks:
+          - {kind: Text, heading: Where we are, text: "Your address and opening hours."}
+          - {kind: Form, heading: Write to us, form: contact}
+      - title: Landing Template
+        slug: template-landing
+        is_template: true
+        summary: One offer, one action
+        blocks:
+          - {kind: Hero, heading: Your offer in one line, text: "One sentence on why it matters.", button_label: Get started, button_url: /contact}
+          - {kind: Text, heading: Why it works, text: "Three short reasons, one per line."}
+          - {kind: Latest Posts, heading: News, posts: 3}
