@@ -6,7 +6,7 @@ import { shell, t } from "@ferrum/client";
 import { ListSkeleton, StatePanel } from "@ferrum/kit";
 import { RequireAuth } from "@ferrum/records/frame";
 
-const page = (name: "FormView" | "ListView" | "ReportView") => () => import("./records").then((m) => ({ Component: m[name] }));
+const page = (name: "ListView" | "ReportView") => () => import("./records").then((m) => ({ Component: m[name] }));
 
 function RouteError() {
   return <StatePanel kind="failed" error={useRouteError()} onRetry={() => window.location.reload()} />;
@@ -38,9 +38,9 @@ export const routes: RouteObject[] = [
     hydrateFallbackElement: <ListSkeleton />,
     children: [
       { index: true, lazy: () => import("./Home").then((m) => ({ Component: m.Home })) },
-      { path: "blocks/:id", lazy: () => import("./BlockEditor").then((m) => ({ Component: m.Blocks })) },
       { path: "e/:entity", lazy: page("ListView") },
-      { path: "e/:entity/:id", lazy: page("FormView") },
+      // A web page's own editor; any other record, and a new page, the records frame's form.
+      { path: "e/:entity/:id", lazy: () => import("./BlockEditor").then((m) => ({ Component: m.Record })) },
       { path: "r/:name", lazy: page("ReportView") },
       { path: "*", element: <NotFound /> },
     ],

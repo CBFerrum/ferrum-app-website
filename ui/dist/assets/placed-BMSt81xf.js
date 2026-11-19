@@ -1,1 +1,0 @@
-import{w as i,e as o}from"./index-DinFx31n.js";function a(s,n){const r=[];let e=0;for(const t of s.matchAll(/\{(\w+)\}/g))t[1]in n&&(r.push(s.slice(e,t.index)),r.push(i.jsx(o.Fragment,{children:n[t[1]]},`${t[1]}-${t.index}`)),e=(t.index??0)+t[0].length);return r.push(s.slice(e)),i.jsx(i.Fragment,{children:r})}export{a as p};

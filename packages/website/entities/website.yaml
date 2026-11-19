@@ -79,6 +79,13 @@
     - {name: brand, type: link, to: Brand, description: "The logo, colour and typeface the site shows; empty: the address's brand, else the workspace's default"}
     - {name: layout, type: select, options: [Classic, Centred, Wide], default: Classic}
     - {name: menu_links, type: table, of: WebMenuLink, label: Links in the Menu, description: "Addresses in the menu beside the pages: the shop, another site"}
+    - {name: custom_css, type: code, read_only: true, no_copy: true, max_length: 60000, label: Own CSS, description: "The site's own stylesheet as served, after its theme: set with Set Own CSS, which parses it and keeps only what is allowed"}
+  actions:
+    - name: set_own_css
+      label: Set Own CSS
+      permission: write
+      params: [{name: css, type: text, label: Own CSS, description: "Style rules, @media, @supports, @keyframes and @font-face; addresses only of the site's own files. Empty: none"}]
+      contract: {effect: transactional_action, returns: {type: object, properties: {css: {type: string}}}, completion: "The site serves exactly the returned sheet at /assets/custom.css, after its theme: the sheet given, parsed and written again with only style rules and @media, @supports, @keyframes and @font-face, every address one of the site's own files; or none when empty"}
 
 - name: WebMenuLink
   label: Menu Link

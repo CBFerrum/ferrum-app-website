@@ -78,7 +78,6 @@ export function Home() {
                 <StatusBadge value={p.status} tones={STATUS_TONES} />
                 {p.kind === "Post" ? <Badge tone="blue">{t("Post")}</Badge> : null}
                 <Link to={`/e/WebPage/${p.id}`}>{t("Edit")}</Link>
-                <Link to={`/blocks/${p.id}`}>{t("Blocks")}</Link>
               </li>
             ))}
           </ul>

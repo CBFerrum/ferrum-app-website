@@ -17,6 +17,8 @@ serde_json = "1"
 sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "tls-rustls-ring-webpki", "postgres", "uuid", "chrono", "json", "migrate", "macros"] }
 uuid = { version = "1.10", features = ["v4", "v7", "serde"] }
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+# The site's own stylesheet is parsed and written again (src/css.rs); MPL-2.0, already in the tree through ammonia.
+cssparser = "0.38"
 
 [dev-dependencies]
 # Its tests check that its interface is a release the platform takes.

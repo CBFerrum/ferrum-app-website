@@ -7,13 +7,13 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.3.1-0d9488?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.2-0d9488?style=flat-square)](CHANGELOG.md)
 [![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue?style=flat-square)](LICENSE)
 [![Ferrum platform](https://img.shields.io/badge/runs%20on-Ferrum-2f5bea?style=flat-square)](https://github.com/CBFerrum/Ferrum)
 ![Rust](https://img.shields.io/badge/Rust-server-b7410e?style=flat-square&logo=rust)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-data-336791?style=flat-square&logo=postgresql&logoColor=white)
 ![React](https://img.shields.io/badge/React-TypeScript-0ea5e9?style=flat-square&logo=react&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-11%20Rust%20%2B%208%20UI-16a34a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-22%20Rust%20%2B%209%20UI-16a34a?style=flat-square)
 
 ### A public website and blog for your workspace, written in Markdown and served on your own domain.
 
@@ -38,15 +38,15 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 | | |
 |---|---|
-| 📦 Version | `0.3.1` |
+| 📦 Version | `0.3.2` |
 | 🧱 Kind | Own interface at `/website/` for editors; the public site on its own host |
 | 🗃️ What it adds | 3 entities (Web Page, Redirect, Website Settings) and 2 tables in records (Block, Menu Link) in the `website` package; a table of page views |
 | 👥 Roles | 1: Site Editor |
 | 📊 Reports and print formats | 1 report: Site Views |
 | 🔗 Depends on | Ferrum `>=0.4.0, <0.5`; a domain given to it (Domains) to serve on |
 | 🤝 Works with | Domains (the host) |
-| 🌍 Languages | The editor's interface in English, Arabic and Hindi (translated by a model, to be reviewed by native speakers). Each public page says its own language (`<html lang dir>`, right to left for Arabic, Hebrew, Persian and Urdu) and names its translations for search engines |
-| 🧪 Tests | 11 Rust tests (two against a real PostgreSQL, one of them walking 13 checks of the public site), 8 interface tests (5 with the real route table mounted) |
+| 🌍 Languages | The editor's interface in English, Arabic and Hindi (translated by a model; not yet reviewed by a native speaker). Each public page says its own language (`<html lang dir>`, right to left for Arabic, Hebrew, Persian and Urdu) and names its translations for search engines |
+| 🧪 Tests | 22 Rust tests (two against a real PostgreSQL, one of them walking 16 checks of the public site, two of them saves racing; 11 on the own-CSS parser), 9 interface tests (6 with the real route table mounted) |
 | 📄 Licence | AGPL-3.0-only |
 
 ## 📸 Screenshots
@@ -113,7 +113,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 - **Views counted, nothing about the visitor kept.** Each page served to a person adds one to that address's count for the day (the workspace's day); crawlers and link previews (a `User-Agent` naming a bot, crawler, spider or preview), the stylesheet, the sitemap, robots, redirects and unknown addresses add nothing, so a flood of made-up addresses adds no row. No address, cookie or visitor is kept. The **Site Views** report lists the 50 addresses most viewed in the last 30 days; days older than 400 are deleted by upkeep.
 - **Link previews and search.** Each page carries its title (or its title for search engines) with the site's name, the summary as description, a canonical link, its translations (`hreflang`), and Open Graph tags (site name, title, description, address and preview image).
 - **No script.** The site's stylesheet follows the reader's light or dark setting and takes the brand's colour and typeface; no font from another site. A page's form frame is the only thing it loads from another address, and only from the workspace's own.
-- **Own CSS: not yet.** A Site Editor's own stylesheet waits for a CSS parser to be chosen (see the roadmap); scripts are refused by design, since a site address may later carry a customer's session.
+- **Own CSS, from an allow-list.** *Set Own CSS* (an operation on Website Settings, write right, with a contract) parses the sheet with `cssparser` (the CSS Syntax tokenizer; escapes decoded before any check), keeps only style rules, `@media`, `@supports`, `@keyframes` and `@font-face`, and writes the sheet out again from what it parsed: comments and the editor's text are never served. It refuses `@import`, `@namespace`, `@charset` anywhere but first, and every other at-rule; every `url(…)` and `image-set(…)` string that is not one of the site's own files (a public file `/files/public/{id}`, the workspace's brand files, or outside `@font-face` a PNG, JPEG, GIF or WebP `data:` picture of at most 8 KB), so no rule can send what a visitor types to another host; an address in a selector; `expression(…)`; a declaration that does not parse as `name: value`; more than 50,000 bytes, 2,000 rules or 8 nested at-rules. The record's own update cannot write the sheet. It is served at `/assets/custom.css` as `text/css` with `nosniff`, under the site's policy (`style-src 'self'`, no script), linked after the brand's. Scripts are refused by design, since a site address may later carry a customer's session.
 - **Served on the platform's host.** The platform hands every path of a `site:website` host to the Website app with the site's own origin, never the caller's.
 
 ### 🔐 Safe Markdown
@@ -127,7 +127,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 ### 👁️ The editors' page
 
 - **Home.** The menu as the site shows it, then every page and post: published ones first (newest first), then drafts by title, with a *Post* badge, the status, an *Edit* link and a *Blocks* link. Below them the templates: type the new page's title, press *Make a page from it* (the `use_template` operation) and the draft opens. *Redirects* and *Site views* are a click away.
-- **Blocks.** `/website/blocks/{page}` arranges a page's blocks: each shows only the fields its kind uses; a block moves by dragging its handle or by its *Move up* / *Move down* buttons (focus stays on the button pressed), is added by kind or removed, and the blocks are saved with the page through the record's own update (the same operation an agent uses). A picture is uploaded here as a public file or given as an `https://` address. A form is named by its address in Forms, with the published public forms the person can read offered as they type; without Forms installed the Form kind is not offered. The site's own rendering of the saved page is beside it.
+- **The page editor.** A page opens at its own address (`/website/e/WebPage/{page}`): its fields (title, address, kind, summary, text, menu place, language, translation, search-engine fields, template) in a panel, *Publish* or *Back to draft* (once saved), and its blocks: each shows only the fields its kind uses; a block moves by dragging its handle or by its *Move up* / *Move down* buttons (focus stays on the button pressed), is added by kind or removed, and the blocks are saved with the page's fields through the record's own update (the same operation an agent uses). A picture is uploaded here as a public file or given as an `https://` address. A form is named by its address in Forms, with the published public forms the person can read offered as they type; without Forms installed the Form kind is not offered. The site's own rendering of the saved page is beside it.
 - **Preview.** Choose a page and see it as the site renders it, drafts included, for those who may read it with their own rights. The preview uses this app's styles, not the site's stylesheet.
 - **Settings and New page** are one click away.
 - **Honest states.** Loading skeletons, "No pages yet.", and refused, offline and failed told apart.
@@ -172,7 +172,7 @@ flowchart TD
 | Web Page | A page or a blog post at `/{slug}` | title, slug, kind (Page / Post), summary, body (Markdown), blocks, Draft / Published, published at, in menu, menu order, under, language, translation of, title for search engines, preview image, canonical address, hide from search engines, template |
 | Block (in a page) | One part of a page after its text | kind (Text, Image, Hero, Call to Action, Form, Latest Posts), heading, text, image, image description, button label and address, form, posts |
 | Redirect | An old address leading to a new one | from, to, permanent |
-| Website Settings | The site's one settings record | site title, tagline, home page, blog title, footer, brand, layout, links in the menu |
+| Website Settings | The site's one settings record | site title, tagline, home page, blog title, footer, brand, layout, links in the menu, own CSS (set only by *Set Own CSS*) |
 | Menu Link (in the settings) | An address in the menu | label, address, menu order |
 
 | Action | Who | What it does |
@@ -180,6 +180,7 @@ flowchart TD
 | `publish` | Site Editor | Publishes a draft and records the time. |
 | `unpublish` | Site Editor | Takes a published page back to a draft. |
 | `use_template` | Whoever may make pages | Makes a draft page from a template with the title given. |
+| `set_own_css` | Site Editor (write on the settings) | Parses the site's own stylesheet, keeps what the allow-list takes, and stores and serves it as written again. |
 
 Each carries a contract (what it changes, returns and means when done), so an agent builds and publishes a whole site through the same operations. Report: Site Views. Upkeep: deletes page views older than 400 days. Table `website_view` (per address and day: a count only).
 
@@ -206,7 +207,7 @@ The leaders are website builders: Webflow, Wix, WordPress, Squarespace and Odoo 
 | Markdown writing | ✅ | ❌ | ❌ | 🟡 | 🟡 | ❌ |
 | Visual drag-and-drop builder | 🟡 | ✅ | ✅ | 🟡 | ✅ | ✅ |
 | Templates and themes | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Custom CSS and code | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Custom CSS and code | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Media library | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Forms built in | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ |
 | Online store | 🟡 | ✅ | ✅ | 🟡 | ✅ | ✅ |
@@ -224,7 +225,7 @@ The leaders are website builders: Webflow, Wix, WordPress, Squarespace and Odoo 
 | Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ |
 | No per-site subscription | ✅ | ❌ | ❌ | 🟡 | ❌ | 🟡 |
 
-Notes: Ferrum's builder is ordered blocks moved by drag or keyboard, with the site's rendering beside them, not a free canvas (🟡). Its media are pictures uploaded as public files or given as `https://` addresses; a library shared with DAM waits for DAM (🟡). Ferrum's templates are pages to start from, with the workspace's brand and three layouts, not a theme marketplace (🟡). Nested menus go one level below the top (🟡). Multi-language: pages say their language and name their translations; choosing a translation by the visitor's language waits for the platform (🟡). Analytics are page views per address and day, kept without anything about the visitor (🟡: no referrers or sessions). 🟡 for Ferrum's online store means the separate Commerce app has its own storefront; Website does not sell. WordPress's Markdown, forms, store, SEO and multi-language support come through plugins. Odoo's Community edition is open source, and its Website builder features in Enterprise differ, hence 🟡. Hosted builders' own pages usually run scripts of their own.
+Notes: Ferrum's own CSS is an allow-listed, parsed sheet; own scripts are refused by design (🟡). Ferrum's builder is ordered blocks moved by drag or keyboard, with the site's rendering beside them, not a free canvas (🟡). Its media are pictures uploaded as public files or given as `https://` addresses; a library shared with DAM waits for DAM (🟡). Ferrum's templates are pages to start from, with the workspace's brand and three layouts, not a theme marketplace (🟡). Nested menus go one level below the top (🟡). Multi-language: pages say their language and name their translations; choosing a translation by the visitor's language waits for the platform (🟡). Analytics are page views per address and day, kept without anything about the visitor (🟡: no referrers or sessions). 🟡 for Ferrum's online store means the separate Commerce app has its own storefront; Website does not sell. WordPress's Markdown, forms, store, SEO and multi-language support come through plugins. Odoo's Community edition is open source, and its Website builder features in Enterprise differ, hence 🟡. Hosted builders' own pages usually run scripts of their own.
 
 ### 🏆 Where Website stands out
 
@@ -235,7 +236,7 @@ Notes: Ferrum's builder is ordered blocks moved by drag or keyboard, with the si
 
 ### 🚧 Where the leaders are still ahead
 
-- 🎨 **Free-form visual building,** themes and custom CSS.
+- 🎨 **Free-form visual building,** themes and custom code.
 - 🖼️ **A media library** with sizes and crops.
 - 🔎 **Analytics** beyond page views, and choosing a page's language by the visitor's.
 - 🧰 **Ecosystem.** Plugins and a large marketplace.
@@ -247,6 +248,7 @@ Notes: Ferrum's builder is ordered blocks moved by drag or keyboard, with the si
 
 ### ✅ Recently shipped
 
+- [x] **0.3.2** Own CSS, parsed and written again from an allow-list; the page editor at the page's own address with its fields beside its blocks; the menu's one level and redirects' one step proven under racing saves.
 - [x] **0.3.1** The blocks editor: drag or move blocks with the keyboard, fields per kind, pictures uploaded as public files, forms offered by name; templates make draft pages from the home.
 - [x] **0.3.0** Blocks (text, image, hero, call to action, form, latest posts), templates, one level of sub-menu and menu links, search-engine fields, one-step redirects (made when an address changes), page languages, the workspace's brand and three layouts, and page views without anything about the visitor.
 - [x] **0.2.1** Publish and Back to Draft say what they do, for people and agents alike.
@@ -264,7 +266,6 @@ Notes: Ferrum's builder is ordered blocks moved by drag or keyboard, with the si
 
 - [ ] **A media library.** Pictures from DAM (waits for DAM's web addresses).
 - [ ] **The visitor's language** chooses a page's translation (waits for the platform's language headers).
-- [ ] **Own CSS,** parsed and limited to the site's own files (waits for the choice of a CSS parser).
 - [ ] **Scheduled publishing.**
 
 ### 🔭 Later

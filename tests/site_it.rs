@@ -139,6 +139,11 @@ async fn scenario() {
     ferrum_domain::maintenance(&k).await.expect("partitions");
     let site = k.hooks.site("website").cloned().expect("the website's site handler");
     let w = World { k, site };
+    // The two races first, both run before either is judged, so a failure names each.
+    let mut raced = menu_one_level_holds_under_racing_saves(&w).await;
+    raced.extend(redirects_one_step_holds_under_racing_saves(&w).await);
+    assert!(raced.is_empty(), "{raced:#?}");
+    own_css_is_set_through_its_operation_and_served_as_parsed(&w).await;
     blocks_render_escaped(&w).await;
     form_block_frames_the_workspaces_published_form(&w).await;
     nested_menu_one_level(&w).await;
@@ -152,6 +157,101 @@ async fn scenario() {
     views_counted_bots_not_and_a_flood_adds_no_rows(&w).await;
     use_template_makes_a_draft(&w).await;
     another_workspaces_pages_never_served(&w).await;
+}
+
+/// Two saves racing in two transactions: page A put under B while B is put under C. Exactly one is refused, and the menu
+/// stays one level deep. Twelve rounds, each on fresh pages.
+async fn menu_one_level_holds_under_racing_saves(w: &World) -> Vec<String> {
+    let ws = w.workspace("race-menu", false).await;
+    let mut bad = Vec::new();
+    for round in 0..12 {
+        let mut ids = Vec::new();
+        for n in ["a", "b", "c"] {
+            ids.push(uid(&w.page(&ws.editor, json!({"title": format!("Race {round} {n}"), "in_menu": true})).await["id"]));
+        }
+        let (a, b, c) = (ids[0], ids[1], ids[2]);
+        let put = |page: Uuid, under: Uuid| {
+            let (k, who) = (w.k.clone(), ws.editor.clone());
+            tokio::spawn(async move { k.update(&who, "WebPage", page, obj(json!({"menu_parent": under})), None).await })
+        };
+        let (x, y) = (put(a, b), put(b, c));
+        let (x, y) = (x.await.unwrap(), y.await.unwrap());
+        let parent = |p: Uuid| {
+            let (k, who) = (w.k.clone(), ws.editor.clone());
+            async move { k.get(&who, "WebPage", p, false).await.unwrap()["menu_parent"].as_str().map(str::to_string) }
+        };
+        let (pa, pb) = (parent(a).await, parent(b).await);
+        match (x.is_ok(), y.is_ok()) {
+            (true, true) => bad.push(format!("menu round {round}: both saves went through")),
+            (false, false) => bad.push(format!("menu round {round}: both refused: {x:?} {y:?}")),
+            _ => {}
+        }
+        if pa.is_some() && pb.is_some() {
+            bad.push(format!("menu round {round}: two levels stored ({pa:?} under {pb:?})"));
+        }
+    }
+    bad
+}
+
+/// Two redirects racing in two transactions, /a → /b and /b → /a: exactly one is refused, and no chain is stored.
+async fn redirects_one_step_holds_under_racing_saves(w: &World) -> Vec<String> {
+    let ws = w.workspace("race-hops", false).await;
+    let mut bad = Vec::new();
+    for round in 0..12 {
+        let (a, b) = (format!("/r{round}-a"), format!("/r{round}-b"));
+        let add = |from: String, to: String| {
+            let (k, who) = (w.k.clone(), ws.editor.clone());
+            tokio::spawn(async move { k.insert(&who, "WebRedirect", obj(json!({"from_path": from, "to": to}))).await })
+        };
+        let (x, y) = (add(a.clone(), b.clone()), add(b.clone(), a.clone()));
+        let (x, y) = (x.await.unwrap(), y.await.unwrap());
+        match (x.is_ok(), y.is_ok()) {
+            (true, true) => bad.push(format!("redirect round {round}: both saved: a loop")),
+            (false, false) => bad.push(format!("redirect round {round}: both refused: {x:?} {y:?}")),
+            _ => {}
+        }
+        let stored = w.find(&ws.editor, "WebRedirect", &[ferrum_kernel::Filter::eq("from_path", b.as_str())], None, 1).await.unwrap().len()
+            + w.find(&ws.editor, "WebRedirect", &[ferrum_kernel::Filter::eq("from_path", a.as_str())], None, 1).await.unwrap().len();
+        if stored != 1 {
+            bad.push(format!("redirect round {round}: {stored} redirects stored"));
+        }
+    }
+    bad
+}
+
+/// The site's own stylesheet goes in only through `set_own_css`, which keeps the sheet as parsed and written again;
+/// what `/assets/custom.css` serves is exactly that, never the text given; a refusal names why and changes nothing.
+async fn own_css_is_set_through_its_operation_and_served_as_parsed(w: &World) {
+    let ws = w.workspace("owncss", false).await;
+    let p = w.page(&ws.editor, json!({"title": "Styled"})).await;
+    w.publish(&ws.editor, &p).await;
+    let settings = w.k.insert(&ws.editor, "WebsiteSettings", obj(json!({"site_title": "Styled"}))).await.unwrap();
+    let sid = uid(&settings["id"]);
+    // what_is_served_is_what_was_parsed
+    let given = "/* ours */\n.hero  h2 { color : #123 }\n@media (max-width: 600px) { .hero { display : none } }\n";
+    let done = w.k.run_action(&ws.editor, "WebsiteSettings", sid, "set_own_css", json!({"css": given})).await.expect("set");
+    let sheet = done["css"].as_str().expect("the sheet kept").to_string();
+    assert_eq!(sheet, ".hero h2{color:#123;}@media (max-width:600px){.hero{display:none;}}");
+    let (status, headers, served) = w.get_as(ws.tenant, "/assets/custom.css", "Mozilla").await.unwrap();
+    assert_eq!((status, served.as_str()), (200, sheet.as_str()));
+    assert!(headers.contains(&("x-content-type-options".into(), "nosniff".into())), "{headers:?}");
+    let html = w.get(ws.tenant, "/styled").await.unwrap();
+    assert!(html.contains(r#"<link rel="stylesheet" href="/assets/custom.css?v="#), "{html}");
+    // Refused with the reason; the sheet served stays as it was.
+    for (bad, why) in
+        [("@import url(/x.css);", "@import is not taken"), ("input[value^=a]{background:url(https://evil.test/a)}", "is not one of the site's own files")]
+    {
+        let r = w.k.run_action(&ws.editor, "WebsiteSettings", sid, "set_own_css", json!({"css": bad})).await;
+        assert!(matches!(&r, Err(Error::Validation(e)) if e.iter().any(|f| f.field == "css" && f.message.contains(why))), "{bad}: {r:?}");
+    }
+    assert_eq!(w.get(ws.tenant, "/assets/custom.css").await.unwrap(), sheet);
+    // The record's own update cannot put text there past the parser.
+    let _ = w.k.update(&ws.editor, "WebsiteSettings", sid, obj(json!({"custom_css": "@import url(https://evil.test/x.css);"})), None).await;
+    assert_eq!(w.get(ws.tenant, "/assets/custom.css").await.unwrap(), sheet);
+    // Empty: none, and no link.
+    w.k.run_action(&ws.editor, "WebsiteSettings", sid, "set_own_css", json!({"css": ""})).await.unwrap();
+    assert!(matches!(w.get(ws.tenant, "/assets/custom.css").await, Err(Error::NotFound(_))));
+    assert!(!w.get(ws.tenant, "/styled").await.unwrap().contains("custom.css"));
 }
 
 /// Words, addresses and Markdown of blocks come out escaped; a script link, a plain-http picture and a far button

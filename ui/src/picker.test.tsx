@@ -14,7 +14,7 @@ describe("the form picker", () => {
     const s = fakeServer({ forms: false });
     s.answers["/api/v1/WebPage/p1"] = page;
     s.answers["/api/app/website/preview/p1"] = { title: "Contact", html: "" };
-    const app = await open("/blocks/p1");
+    const app = await open("/e/WebPage/p1");
     const kinds = [...app.host.querySelectorAll("#ws-add option")].map((o) => o.textContent);
     expect(kinds).not.toContain("Form");
     expect(app.host.textContent).toContain("Forms is not installed: this block shows nothing.");
@@ -28,7 +28,7 @@ describe("the form picker", () => {
     s.answers["/api/v1/WebPage/p1"] = page;
     s.answers["/api/app/website/preview/p1"] = { title: "Contact", html: "" };
     s.answers["/api/v1/Form"] = { rows: [{ id: "f1", slug: "contact", title: "Contact us" }] };
-    const app = await open("/blocks/p1");
+    const app = await open("/e/WebPage/p1");
     expect([...app.host.querySelectorAll("#ws-add option")].map((o) => o.textContent)).toContain("Form");
     expect([...app.host.querySelectorAll("datalist option")].map((o) => o.getAttribute("value"))).toEqual(["contact"]);
     await app.close();

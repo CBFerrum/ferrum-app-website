@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.2
+
+Package `website` 0.2.0 gains, before its first release: the field `WebsiteSettings.custom_css` (read only) and the action `set_own_css`. New dependency `cssparser` 0.38 (MPL-2.0, already in the tree through ammonia). `ui/dist` rebuilt with Ferrum-Frontend `aa75069`.
+
+- **Own CSS, from an allow-list.** `set_own_css {css}` parses the sheet, keeps only style rules, `@media`, `@supports`, `@keyframes` and `@font-face`, and writes it out again from what it parsed; it refuses `@import`, `@namespace`, `@charset` but first, every other at-rule, every address that is not one of the site's own files (public files, the brand's files, small `data:` pictures outside `@font-face`), an address in a selector, `expression(…)`, a declaration that does not parse, and more than 50,000 bytes, 2,000 rules or 8 nested at-rules. Served at `/assets/custom.css` (`text/css`, `nosniff`, the site's policy), linked after the brand's; the record's update cannot write it.
+- **The page editor at the page's own address** (`/website/e/WebPage/{id}`): the page's fields in a panel beside its blocks, saved together; *Publish* and *Back to draft* there. No separate blocks page.
+- **Proven under racing saves:** the menu stays one level deep and redirects one step long when two saves race (tests that fail with the locks taken out).
+- The publish-time form check stays a gate call as the system, not a declared use: a declared use would make Forms required to install Website (see `src/pages.rs`).
+
 ## 0.3.1
 
 No database change. Interface only, `ui/dist` rebuilt with Ferrum-Frontend `aa75069`.

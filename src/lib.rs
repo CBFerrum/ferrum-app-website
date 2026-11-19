@@ -11,9 +11,11 @@
 //!   robots.txt, redirects served, views counted; safe Markdown: raw HTML never passes, links are
 //!   the web's, mail or the site's own, and images are https:// only.
 //! * `reports`: the addresses most viewed.
+//! * `css`: the site's own stylesheet, parsed and written again from an allow-list.
 //!
 //! This app's own design; no code was copied (docs/PROVENANCE.md).
 
+mod css;
 mod pages;
 mod redirects;
 mod reports;

@@ -5,7 +5,8 @@
 //! * `/`: the home page the settings name, else the latest posts;
 //! * `/blog`: the posts, newest first; `/{slug}`: a published page or post, its text then its blocks;
 //! * an address no page has: the redirect from it, one step, else not found;
-//! * `/sitemap.xml`, `/robots.txt`, and `/assets/site.css`.
+//! * `/sitemap.xml`, `/robots.txt`, `/assets/site.css`, and `/assets/custom.css`: the site's own
+//!   stylesheet as `set_own_css` parsed and wrote it (`crate::css`), linked after the brand's.
 //!
 //! Drafts and templates are never served. Text is escaped; Markdown goes through [`markdown`]; an
 //! image, a button or a form frame is drawn only from an address [`image_ok`], [`safe_href`] or
@@ -118,6 +119,8 @@ struct Info {
     menu: Vec<Item>,
     layout: String,
     brand: Option<PublicBrand>,
+    /// The version of the site's own stylesheet when it has one (the settings record's).
+    own_css: Option<i64>,
 }
 
 /// The settings record with its tables (`find_tx` leaves tables out).
@@ -193,6 +196,7 @@ async fn info(k: &Kernel, ctx: &Ctx, tx: &mut Tx, origin: &str) -> Result<Info> 
         }
         .into(),
         brand,
+        own_css: s(&settings, "custom_css").filter(|c| !c.is_empty()).and(settings.get("version").and_then(Value::as_i64).or(Some(0))),
         ws,
     })
 }
@@ -211,6 +215,15 @@ async fn page(k: &Kernel, ctx: &Ctx, tx: &mut Tx, path: &str, origin: &str, coun
         "assets/site.css" => {
             let mut r = SiteResponse::text(200, "text/css; charset=utf-8", CSS);
             r.headers.push(("cache-control".into(), "public, max-age=31536000, immutable".into()));
+            return Ok(r);
+        }
+        "assets/custom.css" => {
+            // Only ever the sheet as parsed and written again; the site's policy (style-src 'self') stays on it.
+            let sheet = k.find_tx(ctx, tx, "WebsiteSettings", &[], None, 1).await?.into_iter().next().and_then(|d| s(&d, "custom_css").map(str::to_string));
+            let sheet = sheet.filter(|c| !c.is_empty()).ok_or_else(|| Error::NotFound("stylesheet".into()))?;
+            let mut r = SiteResponse::text(200, "text/css; charset=utf-8", sheet);
+            r.headers.push(("cache-control".into(), "public, max-age=31536000, immutable".into()));
+            r.headers.push(("x-content-type-options".into(), "nosniff".into()));
             return Ok(r);
         }
         "robots.txt" => return Ok(SiteResponse::text(200, "text/plain; charset=utf-8", format!("User-agent: *\nAllow: /\nSitemap: {origin}/sitemap.xml\n"))),
@@ -476,6 +489,7 @@ fn layout(site: &Info, origin: &str, m: &Meta, main: &str) -> String {
     let tagline = if site.tagline.is_empty() { String::new() } else { format!(r#"<p class="tagline">{}</p>"#, esc(&site.tagline)) };
     let ws = &site.ws.slug;
     let brand_head = site.brand.as_ref().map(|b| b.head(ws)).unwrap_or_default();
+    let own = site.own_css.map(|v| format!(r#"<link rel="stylesheet" href="/assets/custom.css?v={v}">"#)).unwrap_or_default();
     let logo = site.brand.as_ref().and_then(|b| b.file_href(ws, "logo").map(|l| (l, b.file_href(ws, "logo_dark"))));
     let mark = match logo {
         Some((light, dark)) => {
@@ -494,7 +508,7 @@ fn layout(site: &Info, origin: &str, m: &Meta, main: &str) -> String {
     let links = if links.is_empty() { links } else { format!(r#"<ul class="links">{links}</ul>"#) };
     let dir = if ferrum_kernel::layout::rtl(&m.lang) { "rtl" } else { "ltr" };
     format!(
-        r##"<!doctype html><html lang="{lang}" dir="{dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{full}</title>{description}{robots}{canonical}{hreflang}{og}<link rel="stylesheet" href="/assets/site.css?v={v}">{brand_head}</head><body class="layout-{layout}"><a class="skip" href="#main">Skip to content</a><header class="top"><a class="brand" href="/">{mark}</a>{tagline}<nav aria-label="Site"><ul>{menu}<li><a href="/blog">{blog}</a></li></ul></nav></header><main id="main">{main}</main><footer>{footer_text}{links}</footer></body></html>"##,
+        r##"<!doctype html><html lang="{lang}" dir="{dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{full}</title>{description}{robots}{canonical}{hreflang}{og}<link rel="stylesheet" href="/assets/site.css?v={v}">{brand_head}{own}</head><body class="layout-{layout}"><a class="skip" href="#main">Skip to content</a><header class="top"><a class="brand" href="/">{mark}</a>{tagline}<nav aria-label="Site"><ul>{menu}<li><a href="/blog">{blog}</a></li></ul></nav></header><main id="main">{main}</main><footer>{footer_text}{links}</footer></body></html>"##,
         lang = esc(&m.lang),
         v = CSS.len(),
         layout = site.layout,

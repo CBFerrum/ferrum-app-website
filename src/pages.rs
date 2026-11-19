@@ -195,6 +195,13 @@ impl DocHook for PageHook {
 /// Every Form block of `doc` names a published public form of the workspace. Asked of Forms through the gate, as the
 /// system: whether a form is published at an address is public (anyone can open it), and the person writing the page
 /// need not read Forms' records. The answer is yes or no, nothing of the form.
+///
+/// Not a declared use (`uses` + `Kernel::call_tx`), on purpose: a package may declare a use only of a package it
+/// depends on (the catalog refuses it otherwise, docs/app-contract.md "Declaring a use"), so declaring it in `website`
+/// would make Forms required to install Website. The way around that is a connector package (`website_forms`,
+/// depending on website and forms, as `bookings_payments` is Bookings' with Commerce), but a connector is offered only
+/// when its app manifest is listed by the platform (`server/src/packages.rs`, `native_manifests()`), which an app cannot
+/// add. Once the platform lists a Website–Forms connector, this becomes `k.call_tx` under that package's `uses`.
 async fn forms_published(hc: &mut HookCtx<'_>, doc: &Doc) -> Result<()> {
     let wanted: Vec<String> =
         rows(doc, "blocks").iter().filter(|bl| s(bl, "kind") == Some("Form")).filter_map(|bl| s(bl, "form").map(str::to_string)).collect();
@@ -250,6 +257,21 @@ const LINKS_MAX: usize = 20;
 impl DocHook for SettingsHook {
     fn name(&self) -> &'static str {
         "website.settings"
+    }
+
+    async fn action(&self, hc: &mut HookCtx<'_>, name: &str, doc: &Doc, params: &Value) -> Result<Option<Value>> {
+        if name != "set_own_css" {
+            return Ok(None);
+        }
+        let settings = id(doc, "id").ok_or_else(|| Error::internal("settings without an id"))?;
+        let given = params.get("css").and_then(Value::as_str).unwrap_or_default();
+        let ws = workspace(hc.tx, hc.ctx.tenant).await?;
+        // What is kept is what was parsed and written again, never the text given.
+        let sheet = crate::css::clean(given, &ws.slug).map_err(|why| Error::field("css", why))?;
+        let mut v = Doc::new();
+        v.insert("custom_css".into(), if sheet.is_empty() { Value::Null } else { json!(sheet) });
+        hc.kernel.set_values_tx(&sys(hc.ctx), hc.tx, "WebsiteSettings", settings, v).await?;
+        Ok(Some(json!({"css": sheet})))
     }
 
     async fn validate(&self, _hc: &mut HookCtx<'_>, doc: &Doc) -> Result<()> {
