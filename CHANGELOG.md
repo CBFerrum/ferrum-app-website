@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1
+
+No database change. Interface only, `ui/dist` rebuilt with Ferrum-Frontend `aa75069`.
+
+- **The blocks editor** at `/website/blocks/{page}`: each block shows the fields its kind uses; blocks move by drag (a handle) or by *Move up* / *Move down*, keeping focus on the button pressed; added by kind and removed; saved with the page through the record's update. Pictures are uploaded as public files or given as `https://` addresses; a Form block offers the published public forms the person can read, and the Form kind is not offered without Forms. The site's rendering of the saved page is beside it.
+- **Templates on the home:** *Make a page from it* runs `use_template` with the title typed and opens the draft. Links to *Redirects* and *Site views*; templates are not listed among the pages; the menu shown is its top, as the site's.
+- The route table is its own module (`ui/src/routes.tsx`) so tests mount the real one. Words and names of the new screens and fields in Arabic and Hindi (by a model, to be reviewed by native speakers).
+
 ## 0.3.0
 
 Package `website` 0.2.0: new entities Redirect, Block (in a page) and Menu Link (in the settings), new fields on Web Page and Website Settings, the table `website_view` (`sql/001_website.sql`), three seeded templates. Existing pages open unchanged (a page's body is no longer required). Needs a platform with the Brand record (core 0.4.0).

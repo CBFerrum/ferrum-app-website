@@ -1,0 +1,1 @@
+import{e as t,z as a}from"./index-DinFx31n.js";function l(e,n){const[u,f]=t.useState(!1);return t.useEffect(()=>{let s=!0;return a().canIntent(e,n).then(r=>s&&f(r)).catch(()=>{}),()=>{s=!1}},[e,n]),u}function o(e){t.useEffect(()=>{e&&a().title(e)},[e])}export{o as a,l as u};

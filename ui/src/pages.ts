@@ -14,9 +14,10 @@ export function ordered(rows: Row[]): Row[] {
   return [...live, ...drafts];
 }
 
-/** The site's menu: published pages in it, by their order, then title (as the server orders it). */
+/** The site's menu's top: published pages in it that are under no other and translate none, by their order, then
+ * title (as the server orders it). */
 export function menu(rows: Row[]): Row[] {
   return rows
-    .filter((r) => r.status === "Published" && r.in_menu)
+    .filter((r) => r.status === "Published" && r.in_menu && !r.menu_parent && !r.translation_of && !r.is_template)
     .sort((a, b) => Number(a.menu_order ?? 100) - Number(b.menu_order ?? 100) || title(a).localeCompare(title(b)));
 }

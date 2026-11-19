@@ -7,13 +7,13 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-0.3.0-0d9488?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.1-0d9488?style=flat-square)](CHANGELOG.md)
 [![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue?style=flat-square)](LICENSE)
 [![Ferrum platform](https://img.shields.io/badge/runs%20on-Ferrum-2f5bea?style=flat-square)](https://github.com/CBFerrum/Ferrum)
 ![Rust](https://img.shields.io/badge/Rust-server-b7410e?style=flat-square&logo=rust)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-data-336791?style=flat-square&logo=postgresql&logoColor=white)
 ![React](https://img.shields.io/badge/React-TypeScript-0ea5e9?style=flat-square&logo=react&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-11%20Rust%20%2B%202%20UI-16a34a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-11%20Rust%20%2B%208%20UI-16a34a?style=flat-square)
 
 ### A public website and blog for your workspace, written in Markdown and served on your own domain.
 
@@ -38,7 +38,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 | | |
 |---|---|
-| 📦 Version | `0.3.0` |
+| 📦 Version | `0.3.1` |
 | 🧱 Kind | Own interface at `/website/` for editors; the public site on its own host |
 | 🗃️ What it adds | 3 entities (Web Page, Redirect, Website Settings) and 2 tables in records (Block, Menu Link) in the `website` package; a table of page views |
 | 👥 Roles | 1: Site Editor |
@@ -46,7 +46,7 @@ Website is for a company that needs a clear public site: a home page, a few page
 | 🔗 Depends on | Ferrum `>=0.4.0, <0.5`; a domain given to it (Domains) to serve on |
 | 🤝 Works with | Domains (the host) |
 | 🌍 Languages | The editor's interface in English, Arabic and Hindi (translated by a model, to be reviewed by native speakers). Each public page says its own language (`<html lang dir>`, right to left for Arabic, Hebrew, Persian and Urdu) and names its translations for search engines |
-| 🧪 Tests | 11 Rust tests (two against a real PostgreSQL, one of them walking 13 checks of the public site), 2 interface tests |
+| 🧪 Tests | 11 Rust tests (two against a real PostgreSQL, one of them walking 13 checks of the public site), 8 interface tests (5 with the real route table mounted) |
 | 📄 Licence | AGPL-3.0-only |
 
 ## 📸 Screenshots
@@ -126,7 +126,8 @@ Website is for a company that needs a clear public site: a home page, a few page
 
 ### 👁️ The editors' page
 
-- **Home.** The menu as the site shows it, then every page and post: published ones first (newest first), then drafts by title, with a *Post* badge, the status and an *Edit* link.
+- **Home.** The menu as the site shows it, then every page and post: published ones first (newest first), then drafts by title, with a *Post* badge, the status, an *Edit* link and a *Blocks* link. Below them the templates: type the new page's title, press *Make a page from it* (the `use_template` operation) and the draft opens. *Redirects* and *Site views* are a click away.
+- **Blocks.** `/website/blocks/{page}` arranges a page's blocks: each shows only the fields its kind uses; a block moves by dragging its handle or by its *Move up* / *Move down* buttons (focus stays on the button pressed), is added by kind or removed, and the blocks are saved with the page through the record's own update (the same operation an agent uses). A picture is uploaded here as a public file or given as an `https://` address. A form is named by its address in Forms, with the published public forms the person can read offered as they type; without Forms installed the Form kind is not offered. The site's own rendering of the saved page is beside it.
 - **Preview.** Choose a page and see it as the site renders it, drafts included, for those who may read it with their own rights. The preview uses this app's styles, not the site's stylesheet.
 - **Settings and New page** are one click away.
 - **Honest states.** Loading skeletons, "No pages yet.", and refused, offline and failed told apart.
@@ -203,10 +204,10 @@ The leaders are website builders: Webflow, Wix, WordPress, Squarespace and Odoo 
 | Blog with posts | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Draft, preview and publish | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Markdown writing | ✅ | ❌ | ❌ | 🟡 | 🟡 | ❌ |
-| Visual drag-and-drop builder | ❌ | ✅ | ✅ | 🟡 | ✅ | ✅ |
+| Visual drag-and-drop builder | 🟡 | ✅ | ✅ | 🟡 | ✅ | ✅ |
 | Templates and themes | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Custom CSS and code | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Media library | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Media library | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Forms built in | ✅ | ✅ | ✅ | 🟡 | ✅ | ✅ |
 | Online store | 🟡 | ✅ | ✅ | 🟡 | ✅ | ✅ |
 | Nested menus | 🟡 | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -223,7 +224,7 @@ The leaders are website builders: Webflow, Wix, WordPress, Squarespace and Odoo 
 | Self-hosted | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ |
 | No per-site subscription | ✅ | ❌ | ❌ | 🟡 | ❌ | 🟡 |
 
-Notes: Ferrum's templates are pages to start from, with the workspace's brand and three layouts, not a theme marketplace (🟡). Nested menus go one level below the top (🟡). Multi-language: pages say their language and name their translations; choosing a translation by the visitor's language waits for the platform (🟡). Analytics are page views per address and day, kept without anything about the visitor (🟡: no referrers or sessions). 🟡 for Ferrum's online store means the separate Commerce app has its own storefront; Website does not sell. WordPress's Markdown, forms, store, SEO and multi-language support come through plugins. Odoo's Community edition is open source, and its Website builder features in Enterprise differ, hence 🟡. Hosted builders' own pages usually run scripts of their own.
+Notes: Ferrum's builder is ordered blocks moved by drag or keyboard, with the site's rendering beside them, not a free canvas (🟡). Its media are pictures uploaded as public files or given as `https://` addresses; a library shared with DAM waits for DAM (🟡). Ferrum's templates are pages to start from, with the workspace's brand and three layouts, not a theme marketplace (🟡). Nested menus go one level below the top (🟡). Multi-language: pages say their language and name their translations; choosing a translation by the visitor's language waits for the platform (🟡). Analytics are page views per address and day, kept without anything about the visitor (🟡: no referrers or sessions). 🟡 for Ferrum's online store means the separate Commerce app has its own storefront; Website does not sell. WordPress's Markdown, forms, store, SEO and multi-language support come through plugins. Odoo's Community edition is open source, and its Website builder features in Enterprise differ, hence 🟡. Hosted builders' own pages usually run scripts of their own.
 
 ### 🏆 Where Website stands out
 
@@ -234,8 +235,8 @@ Notes: Ferrum's templates are pages to start from, with the workspace's brand an
 
 ### 🚧 Where the leaders are still ahead
 
-- 🎨 **Visual building,** themes and custom CSS.
-- 🖼️ **Media library** and image handling.
+- 🎨 **Free-form visual building,** themes and custom CSS.
+- 🖼️ **A media library** with sizes and crops.
 - 🔎 **Analytics** beyond page views, and choosing a page's language by the visitor's.
 - 🧰 **Ecosystem.** Plugins and a large marketplace.
 
@@ -246,6 +247,7 @@ Notes: Ferrum's templates are pages to start from, with the workspace's brand an
 
 ### ✅ Recently shipped
 
+- [x] **0.3.1** The blocks editor: drag or move blocks with the keyboard, fields per kind, pictures uploaded as public files, forms offered by name; templates make draft pages from the home.
 - [x] **0.3.0** Blocks (text, image, hero, call to action, form, latest posts), templates, one level of sub-menu and menu links, search-engine fields, one-step redirects (made when an address changes), page languages, the workspace's brand and three layouts, and page views without anything about the visitor.
 - [x] **0.2.1** Publish and Back to Draft say what they do, for people and agents alike.
 - [x] **0.2.0** Upkeep takes one workspace: needs Ferrum 0.4.0.
